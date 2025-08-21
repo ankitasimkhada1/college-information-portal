@@ -38,12 +38,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_react',
-    'users',
-    'courses',
-    'events',
-    'attendance',
-    'notifications',
+    # 'users',
+    # 'courses',
+    # 'events',
+    # 'attendance',
+    # 'notifications',
+    'users.apps.UsersConfig',  # Must match the app config name
+    'courses.apps.CoursesConfig',
+    'events.apps.EventsConfig',
+    'attendance.apps.AttendanceConfig',
+    'notifications.apps.NotificationsConfig',
 ]
+
 AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
