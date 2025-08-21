@@ -1,13 +1,14 @@
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
-from users.forms import CustomUserCreationForm, CustomAuthenticationForm  # Updated import
+from users.forms import CustomUserCreationForm, CustomAuthenticationForm
+from users.models import CustomUser  # Import CustomUser
 from events.models import Event
 from django.utils import timezone
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
-    form_class = CustomAuthenticationForm  # Use for login
+    form_class = CustomAuthenticationForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -23,7 +24,13 @@ class CustomLoginView(LoginView):
         }
         fee_structure = {2079: 475000, 2080: 500000, 2081: 525000, 2082: 550000}
         events = Event.objects.filter(date__gte=timezone.now()).order_by('date')[:3]
-        context.update({'bim_subjects': bim_subjects, 'fee_structure': fee_structure, 'events': events})
+        users = CustomUser.objects.all()[:5]  # Limit to 5 users for display
+        context.update({
+            'bim_subjects': bim_subjects,
+            'fee_structure': fee_structure,
+            'events': events,
+            'users': users,  # Add users to context
+        })
         return context
 
 def register_view(request):

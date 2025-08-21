@@ -1,4 +1,3 @@
-# Create your models here.
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
@@ -18,9 +17,9 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class CustomUser(AbstractUser):
-    username = None  # Remove username
+    username = None
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=15, blank=True, null=True)  # Removed unique=True
+    phone = models.CharField(max_length=15, blank=True, null=True)
     role = models.CharField(max_length=20, choices=[('student', 'Student'), ('teacher', 'Teacher'), ('admin', 'Admin')], default='student')
 
     USERNAME_FIELD = 'email'
