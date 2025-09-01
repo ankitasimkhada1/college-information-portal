@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard - ShankerDev Campus{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Student Dashboard</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Attendance</h5>
+            <p class="card-text">Percentage: {{ attendance_percent|floatformat:1 }}%</p>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Exam Schedule</h5>
+            {% for exam in exams %}
+                <p class="card-text">{{ exam.date|date:"F d, Y" }}: {{ exam.details }}</p>
+            {% empty %}
+                <p class="card-text">No exams scheduled.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Fee Dues</h5>
+            {% for fee in fees %}
+                <p class="card-text">Due: {{ fee.due_date|date:"F d, Y" }} - NPR {{ fee.amount }}</p>
+            {% empty %}
+                <p class="card-text">No pending fees.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Upcoming Events</h5>
+            {% for event in events %}
+                <p class="card-text">{{ event.date|date:"F d, Y" }}: {{ event.title }}</p>
+            {% empty %}
+                <p class="card-text">No upcoming events.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Assignments</h5>
+            {% for assignment in assignments %}
+                <p class="card-text">{{ assignment.title }} (Due: {{ assignment.due_date|date:"F d, Y" }})</p>
+            {% empty %}
+                <p class="card-text">No assignments.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Subjects</h5>
+            {% for subject in subjects %}
+                <p class="card-text">{{ subject.name }}</p>
+            {% empty %}
+                <p class="card-text">No subjects enrolled.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Teacher Presence</h5>
+            {% for teacher in teachers_present %}
+                <p class="card-text">{{ teacher.teacher.username }}: Present</p>
+            {% empty %}
+                <p class="card-text">No teachers present today.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

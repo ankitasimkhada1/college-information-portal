@@ -38,19 +38,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_react',
-    # 'users',
-    # 'courses',
-    # 'events',
-    # 'attendance',
-    # 'notifications',
     'users.apps.UsersConfig',  # Must match the app config name
     'courses.apps.CoursesConfig',
     'events.apps.EventsConfig',
     'attendance.apps.AttendanceConfig',
     'notifications.apps.NotificationsConfig',
+    'campus.apps.CampusConfig',
+    'widget_tweaks',
+   
+    
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
+AUTHENTICATION_BACKENDS = ['users.backends.CustomBackend']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,9 +71,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'myproject.context_processors.college_context',
             ],
         },
     },

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard - ShankerDev Campus{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Teacher Dashboard</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Subjects</h5>
+            {% for subject in subjects %}
+                <p class="card-text">{{ subject.name }}</p>
+            {% empty %}
+                <p class="card-text">No subjects assigned.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <a href="{% url 'mark_attendance' %}" class="btn btn-primary mb-3">Mark Student Attendance</a>
+    <a href="{% url 'mark_teacher_attendance' %}" class="btn btn-primary mb-3">Mark Own Attendance</a>
+    <a href="{% url 'add_assignment' %}" class="btn btn-primary mb-3">Add Assignment</a>
+</div>
+{% endblock %}

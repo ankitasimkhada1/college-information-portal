@@ -1,58 +1,102 @@
+{% comment %} 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - BIM Course Info</title>
+    <title>Login - ShankerDev Campus BIM Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f7fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .login-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .login-section, .info-section {
+            padding: 20px;
+        }
+        .btn-custom {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #1557b0;
+        }
+        .role-select {
+            margin-top: 10px;
+        }
+        .detail-btn {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
+    <div class="login-container">
         <div class="row">
-            <div class="col-md-6">
-                <h2>Login</h2>
-                <form method="post" action="{% url 'login' %}">
+            <!-- Login Section -->
+            <div class="col-md-5 login-section">
+                <h2 class="text-center mb-4">Welcome to ShankerDev Campus</h2>
+                <p class="text-center text-muted">Please log in with your role</p>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" action="{% url 'login' %}" class="needs-validation" novalidate>
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="{{ form.username.id_for_label }}" class="form-label">Email</label>
                         {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">{{ form.username.errors }}</div>
+                        {% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
                         {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">{{ form.password.errors }}</div>
+                        {% endif %}
                     </div>
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                     {% endif %}
-                    <button type="submit" class="btn btn-primary">Login</button>
+                    <div class="mb-3 role-select">
+                        <label for="role" class="form-label">Select Role</label>
+                        <select name="role" id="role" class="form-select" required>
+                            <option value="" disabled selected>Choose your role</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-custom w-100">Login</button>
                 </form>
-                <p>Not registered? <a href="{% url 'register' %}">Register here</a>.</p>
+                <p class="mt-3 text-center">
+                    Don't have an account? <a href="{% url 'register' %}" class="text-decoration-none">Register here</a>.
+                </p>
+                <a href="{% url 'bim_course_details' %}" class="btn btn-custom w-100 detail-btn">Detail Course</a>
             </div>
-            <div class="col-md-6">
-                <h2>BIM Subject Details</h2>
-                <p>The Bachelor of Information Management (BIM) at Tribhuvan University is a four-year course...</p>
-                {% for semester, subjects in bim_subjects.items %}
-                <div class="card mb-3">
-                    <div class="card-header">Semester {{ semester }}</div>
-                    <ul class="list-group list-group-flush">
-                        {% for subject in subjects %}
-                        <li class="list-group-item">{{ subject }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endfor %}
-                <h2>Fee Structure</h2>
-                <table class="table">
-                    <thead><tr><th>Batch</th><th>Fee (NPR)</th></tr></thead>
-                    <tbody>
-                        {% for year, fee in fee_structure.items %}
-                        <tr><td>{{ year }}</td><td>{{ fee }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <h2>Events</h2>
+            <!-- Info Section -->
+            <div class="col-md-7 info-section">
+                <h3>About ShankerDev Campus</h3>
+                <p>{{ college_info.about_bim }}</p>
+                <p><strong>Location:</strong> {{ college_info.location }}</p>
+                <h4>Upcoming Events</h4>
                 {% if events %}
                 <ul class="list-group">
                     {% for event in events %}
@@ -66,25 +110,98 @@
                 {% else %}
                 <p>No upcoming events.</p>
                 {% endif %}
-                <h2>Registered Users</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Role</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.phone|default:"N/A" }}</td>
-                            <td>{{ user.role }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> {% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ShankerDev Campus BIM Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7fa; font-family: 'Arial', sans-serif; }
+        .login-container { max-width: 900px; margin: 50px auto; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; }
+        .login-section, .info-section { padding: 20px; }
+        .btn-custom { background-color: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s; }
+        .btn-custom:hover { background-color: #1557b0; }
+        .role-select { margin-top: 10px; }
+        .detail-btn { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="row">
+            <!-- Login Section -->
+            <div class="col-md-5 login-section">
+                <h2 class="text-center mb-4">Welcome to ShankerDev Campus</h2>
+                <p class="text-center text-muted">Please log in with your role</p>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" action="{% url 'login' %}" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.email_or_phone.id_for_label }}" class="form-label">Email or Phone Number</label>
+                        {{ form.email_or_phone }}
+                        {% if form.email_or_phone.errors %}
+                            <div class="invalid-feedback">{{ form.email_or_phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="mb-3 role-select">
+                        <label for="role" class="form-label">Select Role</label>
+                        <select name="role" id="role" class="form-select" required>
+                            <option value="" disabled selected>Choose your role</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-custom w-100">Login</button>
+                </form>
+                <p class="mt-3 text-center">
+                    Don't have an account? <a href="{% url 'register' %}" class="text-decoration-none">Register here</a>.
+                </p>
+                <a href="{% url 'bim_course_details' %}" class="btn btn-custom w-100 detail-btn">Detail Course</a>
+            </div>
+            <!-- Info Section -->
+            <div class="col-md-7 info-section">
+                <h3>About ShankerDev Campus</h3>
+                <p>{{ college_info.about_bim }}</p>
+                <p><strong>Location:</strong> {{ college_info.location }}</p>
+                <h4>Upcoming Events</h4>
+                {% if events %}
+                <ul class="list-group">
+                    {% for event in events %}
+                    <li class="list-group-item">
+                        <h5>{{ event.title }}</h5>
+                        <p>{{ event.description }}</p>
+                        <small>{{ event.date|date:"F d, Y" }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No upcoming events.</p>
+                {% endif %}
             </div>
         </div>
     </div>

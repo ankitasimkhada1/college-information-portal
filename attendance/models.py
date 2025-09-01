@@ -13,7 +13,12 @@ class StudentAttendance(models.Model):
         return f"{self.student.email} - {self.course.name} - {self.date}"
 
 class TeacherAttendance(models.Model):
-    teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'teacher'})
+    teacher = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'teacher'},
+        related_name='attendance_teacher_records'  # Unique related_name
+    )
     date = models.DateField(auto_now_add=True)
     present = models.BooleanField(default=False)
 

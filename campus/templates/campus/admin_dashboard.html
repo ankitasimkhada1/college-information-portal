@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - ShankerDev Campus{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+    <a href="{% url 'manage_courses' %}" class="btn btn-primary mb-3">Manage Courses</a>
+    <a href="{% url 'set_exam_dates' %}" class="btn btn-primary mb-3">Set Exam Dates</a>
+    <a href="{% url 'send_notifications' %}" class="btn btn-primary mb-3">Send Notifications</a>
+    <a href="{% url 'update_seats' %}" class="btn btn-primary mb-3">Update Available Seats</a>
+    <a href="{% url 'post_event' %}" class="btn btn-primary mb-3">Post Event</a>
+    <a href="{% url 'alert_fee_dues' %}" class="btn btn-primary mb-3">Alert Fee Dues</a>
+</div>
+{% endblock %}
