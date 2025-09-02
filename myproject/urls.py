@@ -17,20 +17,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView
-from .views import CustomLoginView, home_view, register_view, student_dashboard, teacher_dashboard, admin_dashboard, bim_course_details
 from django.views.generic.base import RedirectView
+from users.views import CustomLoginView, register_view
+from campus.views import student_dashboard, teacher_dashboard, admin_dashboard, bim_course_details
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('courses/', include('courses.urls')),
-    path('', RedirectView.as_view(url='/login/'), name='home'),  # Redirect root to login
+    path('campus/', include('campus.urls')),  # All campus-related paths, including attendance
+    path('', RedirectView.as_view(url='/login/', permanent=False), name='home'),
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(template_name='registration/logged_out.html'), name='logout'),  # Removed duplicate
+    path('logout/', LogoutView.as_view(template_name='registration/logged_out.html'), name='logout'),
     path('register/', register_view, name='register'),
     path('student-dashboard/', student_dashboard, name='student_dashboard'),
     path('teacher-dashboard/', teacher_dashboard, name='teacher_dashboard'),
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
     path('bim-course-details/', bim_course_details, name='bim_course_details'),
-    path('campus/', include('campus.urls')),
-    path('', home_view, name='home'),
+    # Remove: path('attendance/', include('attendance.urls')),
 ]

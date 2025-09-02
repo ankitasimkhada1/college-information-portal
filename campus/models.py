@@ -126,13 +126,13 @@ class TeacherProfile(models.Model):
         return self.user.username
 
 class Attendance(models.Model):
-    student = models.ForeignKey(CustomUser, related_name='student_attendance', on_delete=models.CASCADE)
-    date = models.DateField()  # Allow manual date entry
-    present = models.BooleanField(default=False)
-    teacher = models.ForeignKey(CustomUser, related_name='marked_by', on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'teacher'})
+    student = models.ForeignKey(CustomUser, related_name='student_attendance', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
+    teacher = models.ForeignKey(CustomUser, related_name='teacher_attendance', on_delete=models.CASCADE, limit_choices_to={'role': 'teacher'})
+    date = models.DateField(auto_now_add=True)
+    present = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.student.username} - {self.date} - {'Present' if self.present else 'Absent'}"
+        return f"{self.student.email} - {self.date} ({'Present' if self.present else 'Absent'})"
 
 class TeacherAttendance(models.Model):
     teacher = models.ForeignKey(
@@ -197,6 +197,9 @@ class Course(models.Model):
     name = models.CharField(max_length=100)
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
     available_seats = models.PositiveIntegerField(default=50)
+    description = models.CharField(max_length=500)
+    duration = models.CharField(max_length=50)
+    location = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name
@@ -218,3 +221,5 @@ class Testimonial(models.Model):
 class CollegeInfo(models.Model):
     about_bim = models.TextField(default="ShankerDev Campus offers a Bachelor in Information Management (BIM) program.")
     location = models.CharField(max_length=100, default="Kathmandu, Nepal")
+    
+    

@@ -1,8 +1,79 @@
-
+{% comment %} 
 {% extends 'base.html' %}
 {% block title %}Teacher Dashboard{% endblock %}
 {% block content %}
 <h1>Welcome, Teacher {{ user.email }}</h1>
 <p>Role: {{ user.role }}</p>
 <p>Manage courses and grades here (to be implemented).</p>
+{% endblock %} {% endcomment %}
+ 
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Teacher Dashboard</h2>
+    <h3>Mark Your Attendance</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Present</label>
+            <input type="checkbox" name="present">
+        </div>
+        <button type="submit" name="own_attendance" class="btn btn-primary">Submit</button>
+    </form>
+    <h3>Mark Student Attendance</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Select Student</label>
+            <select name="student_id" class="form-select">
+                {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label>Present</label>
+            <input type="checkbox" name="student_present">
+        </div>
+        <button type="submit" name="student_attendance" class="btn btn-primary">Submit</button>
+    </form>
+    <h3>Assign Task</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Select Student</label>
+            <select name="student_id" class="form-select">
+                {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label>Title</label>
+            <input type="text" name="task_title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label>Description</label>
+            <textarea name="task_description" class="form-control" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label>Due Date</label>
+            <input type="date" name="due_date" class="form-control" required>
+        </div>
+        <button type="submit" name="assign_task" class="btn btn-primary">Assign</button>
+    </form>
+    <h3>Your Attendances</h3>
+    <ul>
+        {% for attendance in attendances %}
+            <li>{{ attendance.date }} - {{ attendance.present|yesno:"Present,Absent" }}</li>
+        {% endfor %}
+    </ul>
+    <h3>Assigned Tasks</h3>
+    <ul>
+        {% for task in tasks %}
+            <li>{{ task.title }} for {{ task.student.username }} - Due: {{ task.due_date }} - {{ task.completed|yesno:"Completed,Pending" }}</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

@@ -50,7 +50,8 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
-AUTHENTICATION_BACKENDS = ['users.backends.CustomBackend']
+AUTHENTICATION_BACKENDS = ['users.backends.CustomBackend',
+                          'django.contrib.auth.backends.ModelBackend', ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

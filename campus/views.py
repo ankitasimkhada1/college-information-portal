@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm
 from .models import Attendance, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty
 from django.contrib.auth import get_user_model
 from datetime import date
-from django import forms
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -33,10 +33,10 @@ def student_dashboard(request):
             [request.user.email],
             fail_silently=True,
         )
-    exams = ExamRoutine.objects.all()
-    fees = FeeDue.objects.filter(student=request.user)
-    events = Event.objects.all()
-    assignments = Assignment.objects.filter(semester=profile.semester)
+    exams = ExamRoutine.objects.filter(date__gte=date.today())
+    fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today())
+    events = Event.objects.filter(date__gte=date.today())
+    assignments = Assignment.objects.filter(semester=profile.semester, due_date__gte=date.today())
     subjects = Subject.objects.filter(semester=profile.semester, faculty=profile.faculty)
     teachers_present = TeacherAttendance.objects.filter(date=date.today(), present=True)
     return render(request, 'campus/student_dashboard.html', {
@@ -53,7 +53,11 @@ def student_dashboard(request):
 @teacher_required
 def teacher_dashboard(request):
     subjects = request.user.teacherprofile.subjects.all()
-    return render(request, 'campus/teacher_dashboard.html', {'subjects': subjects})
+    assignments = Assignment.objects.filter(teacher=request.user)
+    return render(request, 'campus/teacher_dashboard.html', {
+        'subjects': subjects,
+        'assignments': assignments,
+    })
 
 @login_required
 @teacher_required
@@ -62,13 +66,16 @@ def mark_attendance(request):
         students = request.POST.getlist('students')
         for student_id in students:
             student = User.objects.get(id=student_id)
+            present = student_id in request.POST.getlist('present_students', [])  # Check if marked present
             Attendance.objects.update_or_create(
                 student=student,
+                teacher=request.user,
                 date=date.today(),
-                defaults={'present': True, 'teacher': request.user}
+                defaults={'present': present}
             )
             profile = StudentProfile.objects.get(user=student)
-            profile.attended_days += 1
+            if present:
+                profile.attended_days += 1
             profile.total_days += 1
             profile.save()
         messages.success(request, 'Attendance marked successfully.')
@@ -101,6 +108,9 @@ def add_assignment(request):
             assignment.save()
             messages.success(request, 'Assignment added successfully.')
             return redirect('teacher_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = AssignmentForm()
     return render(request, 'campus/add_assignment.html', {'form': form})
@@ -108,7 +118,12 @@ def add_assignment(request):
 @login_required
 @admin_required
 def admin_dashboard(request):
-    return render(request, 'campus/admin_dashboard.html')
+    courses = CourseForm().fields['course'].queryset  # Assuming Course model exists
+    events = Event.objects.all()
+    return render(request, 'campus/admin_dashboard.html', {
+        'courses': courses,
+        'events': events,
+    })
 
 @login_required
 @admin_required
@@ -119,6 +134,9 @@ def manage_courses(request):
             form.save()
             messages.success(request, 'Course managed successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = CourseForm()
     return render(request, 'campus/manage_courses.html', {'form': form})
@@ -132,6 +150,9 @@ def set_exam_dates(request):
             form.save()
             messages.success(request, 'Exam dates set successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = ExamRoutineForm()
     return render(request, 'campus/set_exam_dates.html', {'form': form})
@@ -155,6 +176,9 @@ def send_notifications(request):
                 )
             messages.success(request, 'Notifications sent successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = NotificationForm()
     return render(request, 'campus/send_notifications.html', {'form': form})
@@ -170,6 +194,9 @@ def update_seats(request):
             course.save()
             messages.success(request, 'Seats updated successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = UpdateSeatsForm()
     return render(request, 'campus/update_seats.html', {'form': form})
@@ -183,6 +210,9 @@ def post_event(request):
             form.save()
             messages.success(request, 'Event posted successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = EventForm()
     return render(request, 'campus/post_event.html', {'form': form})
@@ -196,6 +226,36 @@ def alert_fee_dues(request):
             form.save()
             messages.success(request, 'Fee due alert sent successfully.')
             return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
     else:
         form = FeeDueForm()
     return render(request, 'campus/alert_fee_dues.html', {'form': form})
+
+# Add the missing bim_course_details view
+@login_required
+def bim_course_details(request):
+    # Assuming a Course model exists; fetch BIM course details
+    from .models import Course  # Lazy import
+    bim_course = Course.objects.filter(name__icontains='bim').first()  # Adjust query as needed
+    context = {
+        'course_info': {
+            'title': bim_course.name if bim_course else 'Bachelor in Information Management (BIM)',
+            'description': bim_course.description if bim_course else 'A 4-year program focusing on IT and management skills.',
+            'duration': bim_course.duration if bim_course else '4 years',
+            'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal'
+        }
+    }
+    return render(request, 'campus/bim_course_details.html', context)
+@login_required
+@admin_required
+def view_attendance(request, role=None):
+    if role:
+        attendees = User.objects.filter(role=role)
+    else:
+        attendees = User.objects.filter(role='student')  # Default to students
+    attendance_records = Attendance.objects.filter(
+        student__in=attendees, date__gte=date.today().replace(day=1)  # Last 30 days
+    ).order_by('date')
+    return render(request, 'campus/view_attendance.html', {'attendance_records': attendance_records})
