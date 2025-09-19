@@ -144,3 +144,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ankitasimkhada20@gmail.com'  
 EMAIL_HOST_PASSWORD = 'ankita123'  
+
+
+
+LOGIN_URL = '/login/'

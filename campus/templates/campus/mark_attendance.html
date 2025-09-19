@@ -1,3 +1,26 @@
+{% comment %} {% extends 'base.html' %}
+{% block title %}Mark Attendance - ShankerDev Campus{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Mark Attendance</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for student in students %}
+            <div class="form-check">
+                <input type="checkbox" name="students" value="{{ student.id }}" class="form-check-input" id="student_{{ student.id }}">
+                <label class="form-check-label" for="student_{{ student.id }}">{{ student.username }}</label>
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary mt-3">Submit Attendance</button>
+    </form>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %} {% endcomment %}
+
 {% extends 'base.html' %}
 {% block title %}Mark Attendance - ShankerDev Campus{% endblock %}
 {% block content %}
@@ -9,6 +32,8 @@
             <div class="form-check">
                 <input type="checkbox" name="students" value="{{ student.id }}" class="form-check-input" id="student_{{ student.id }}">
                 <label class="form-check-label" for="student_{{ student.id }}">{{ student.username }}</label>
+                <input type="checkbox" name="present_students" value="{{ student.id }}" class="form-check-input" id="present_{{ student.id }}">
+                <label class="form-check-label" for="present_{{ student.id }}">Present</label>
             </div>
         {% endfor %}
         <button type="submit" class="btn btn-primary mt-3">Submit Attendance</button>

@@ -33,5 +33,6 @@ urlpatterns = [
     path('teacher-dashboard/', teacher_dashboard, name='teacher_dashboard'),
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
     path('bim-course-details/', bim_course_details, name='bim_course_details'),
-    # Remove: path('attendance/', include('attendance.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    #  path('attendance/', include('attendance.urls')),
 ]

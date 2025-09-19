@@ -1,23 +1,3 @@
-# from datetime import date
-
-# from django.shortcuts import render
-# from campus.models import Attendance
-# from campus.views import User, admin_required, student_required, teacher_required
-
-
-# @admin_required
-# @teacher_required
-# @student_required
-# # Or adjust based on who should view attendance
-# def view_attendance(request, role=None):
-#     if role:
-#         attendees = User.objects.filter(role=role)
-#     else:
-#         attendees = User.objects.filter(role='student')  # Default to students
-#     attendance_records = Attendance.objects.filter(
-#         student__in=attendees, date__gte=date.today().replace(day=1)  # Last 30 days
-#     ).order_by('date')
-#     return render(request, 'attendance/view_attendance.html', {'attendance_records': attendance_records})
 
 
 from django.shortcuts import render, redirect
