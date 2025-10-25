@@ -269,7 +269,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm
-from .models import Attendance, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty
+from .models import Attendance, Course, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty
 from django.contrib.auth import get_user_model
 from datetime import date
 from django.core.mail import send_mail
@@ -563,17 +563,55 @@ def alert_fee_dues(request):
         form = FeeDueForm()
     return render(request, 'campus/alert_fee_dues.html', {'form': form})
 
+# @login_required
+# def bim_course_details(request):
+#     try:
+#         from .models import Course  # Lazy import to avoid circular issues
+#         bim_course = Course.objects.filter(name__icontains='bim').first()
+#         context = {
+#             'course_info': {
+#                 'title': bim_course.name if bim_course else 'Bachelor in Information Management (BIM)',
+#                 'description': bim_course.description if bim_course else 'A 4-year program focusing on IT and management skills.',
+#                 'duration': bim_course.duration if bim_course else '4 years',
+#                 'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal'
+#             }
+#         }
+#     except Exception as e:
+#         messages.error(request, f"Error loading course details: {str(e)}")
+#         context = {
+#             'course_info': {
+#                 'title': 'Bachelor in Information Management (BIM)',
+#                 'description': 'A 4-year program focusing on IT and management skills.',
+#                 'duration': '4 years',
+#                 'location': 'Putalisadak, Kathmandu, Nepal'
+#             }
+#         }
+#     return render(request, 'campus/bim_course_details.html', context)
 @login_required
 def bim_course_details(request):
     try:
-        from .models import Course  # Lazy import to avoid circular issues
-        bim_course = Course.objects.filter(name__icontains='bim').first()
+        # Use exact match for BIM course or case-insensitive search
+        bim_course = Course.objects.filter(name__iexact='BIM').first()
+        if not bim_course:
+            bim_course = Course.objects.filter(name__icontains='bim').first()
         context = {
             'course_info': {
                 'title': bim_course.name if bim_course else 'Bachelor in Information Management (BIM)',
                 'description': bim_course.description if bim_course else 'A 4-year program focusing on IT and management skills.',
                 'duration': bim_course.duration if bim_course else '4 years',
-                'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal'
+                'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal',
+                'additional_info': getattr(bim_course, 'additional_info', ''),  # Add more fields if available
+            }
+        }
+    except Course.DoesNotExist:
+        messages.warning(request, "BIM course not found in the database.")
+        context = {
+            'course_info': {
+                'title': 'Bachelor in Information Management (BIM)',
+                'description': 'A 4-year program focusing on IT and management skills.',
+                'duration': '4 years',
+                'location': 'Putalisadak, Kathmandu, Nepal',
+                'additional_info': '',
             }
         }
     except Exception as e:
@@ -583,7 +621,8 @@ def bim_course_details(request):
                 'title': 'Bachelor in Information Management (BIM)',
                 'description': 'A 4-year program focusing on IT and management skills.',
                 'duration': '4 years',
-                'location': 'Putalisadak, Kathmandu, Nepal'
+                'location': 'Putalisadak, Kathmandu, Nepal',
+                'additional_info': '',
             }
         }
     return render(request, 'campus/bim_course_details.html', context)

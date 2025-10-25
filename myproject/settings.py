@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_react',
     'users.apps.UsersConfig',  # Must match the app config name
     'courses.apps.CoursesConfig',
     'events.apps.EventsConfig',
