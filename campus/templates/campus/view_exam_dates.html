@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Exam Schedule - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Exam Schedule</h2>
+    {% if exams %}
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exam in exams %}
+            <tr>
+                <td>{{ exam.subject.name }}</td>
+                <td>{{ exam.date }}</td>
+                <td>{{ exam.details }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-warning">No exams scheduled.</div>
+    {% endif %}
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Assignments - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Pending Assignments</h2>
+    {% if assignments %}
+    <div class="list-group">
+        {% for assignment in assignments %}
+        <a href="{% url 'assignment_detail' assignment.id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ assignment.title }}</h5>
+                <small class="text-danger">Due: {{ assignment.due_date }}</small>
+            </div>
+            <p class="mb-1">{{ assignment.description|truncatewords:20 }}</p>
+            <small>Subject: {{ assignment.subject.name }}</small>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">No pending assignments found.</div>
+    {% endif %}
+    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

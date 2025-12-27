@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from twilio.rest import Client
 from django.conf import settings
 
+
 @receiver(post_save, sender=Attendance)
 def update_attendance(sender, instance, created, **kwargs):
     if created:

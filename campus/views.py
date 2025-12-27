@@ -268,8 +268,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm
-from .models import Attendance, Course, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty
+from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm, SubmissionForm
+from .models import Attendance, Course, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty, Submission
 from django.contrib.auth import get_user_model
 from datetime import date
 from django.core.mail import send_mail
@@ -304,12 +304,22 @@ def student_dashboard(request):
     except StudentProfile.DoesNotExist:
         messages.error(request, "Your student profile is not set up. Contact an admin.")
         attendance_percent = 0
-    exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
-    fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today()).order_by('due_date')
-    events = Event.objects.filter(date__gte=date.today()).order_by('date')
-    assignments = Assignment.objects.filter(semester=profile.semester, due_date__gte=date.today()).order_by('due_date')
-    subjects = Subject.objects.filter(semester=profile.semester, faculty=profile.faculty).order_by('name')
-    teachers_present = TeacherAttendance.objects.filter(date=date.today(), present=True).order_by('teacher__email')
+        profile = None
+    if profile:
+        exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
+        fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today()).order_by('due_date')
+        events = Event.objects.filter(date__gte=date.today()).order_by('date')
+        # Show all future assignments for the student's semester
+        assignments = Assignment.objects.filter(semester=profile.semester, due_date__gte=date.today()).order_by('due_date')
+        subjects = Subject.objects.filter(semester=profile.semester, faculty=profile.faculty).order_by('name')
+    else:
+        exams = []
+        fees = []
+        events = []
+        assignments = []
+        subjects = []
+    
+    teachers_attendance = TeacherAttendance.objects.filter(date=date.today()).select_related('teacher').order_by('teacher__email')
     return render(request, 'campus/student_dashboard.html', {
         'attendance_percent': attendance_percent,
         'exams': exams,
@@ -317,7 +327,7 @@ def student_dashboard(request):
         'events': events,
         'assignments': assignments,
         'subjects': subjects,
-        'teachers_present': teachers_present,
+        'teachers_attendance': teachers_attendance,
     })
 
 @login_required
@@ -411,17 +421,22 @@ def login_view(request):
 def mark_teacher_attendance(request):
     if request.method == 'POST':
         try:
-            present = request.POST.get('present') == 'on'
-            TeacherAttendance.objects.update_or_create(
-                teacher=request.user,
-                date=date.today(),
-                defaults={'present': present}
-            )
+            present_str = request.POST.get('present', 'True')
+            present = present_str == 'True'
+            if not TeacherAttendance.objects.filter(teacher=request.user, date=date.today()).exists():
+                 TeacherAttendance.objects.create(
+                    teacher=request.user,
+                    date=date.today(),
+                    present=present
+                )
+            else:
+                TeacherAttendance.objects.filter(teacher=request.user, date=date.today()).update(present=present)
             messages.success(request, 'Attendance marked.')
         except Exception as e:
             messages.error(request, f"Error marking attendance: {str(e)}")
         return redirect('teacher_dashboard')
     return render(request, 'campus/mark_teacher_attendance.html')
+
 
 @login_required
 @teacher_required
@@ -641,4 +656,69 @@ def view_attendance(request, role=None):
     except Exception as e:
         messages.error(request, f"Error loading attendance: {str(e)}")
         attendance_records = []
+
+@login_required
+@student_required
+def submit_assignment(request):
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+        assignments = Assignment.objects.filter(semester=profile.semester, due_date__gte=date.today()).order_by('due_date')
+    except StudentProfile.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        assignments = []
+    return render(request, 'campus/assignment_list.html', {'assignments': assignments})
+
+@login_required
+@student_required
+def assignment_detail(request, pk):
+    assignment = Assignment.objects.get(id=pk)
+    if request.method == 'POST':
+        form = SubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                submission = form.save(commit=False)
+                submission.assignment = assignment
+                submission.student = request.user
+                submission.save()
+                messages.success(request, "Assignment submitted successfully!")
+                return redirect('student_dashboard')
+            except Exception as e:
+                messages.error(request, f"Error submitting assignment: {e}")
+    else:
+        form = SubmissionForm()
+    return render(request, 'campus/assignment_detail.html', {'assignment': assignment, 'form': form})
+
+@login_required
+@student_required
+def view_exam_dates(request):
+    exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
+    return render(request, 'campus/view_exam_dates.html', {'exams': exams})
+
+@login_required
+@student_required
+def view_events(request):
+    events = Event.objects.filter(date__gte=date.today()).order_by('date')
+    return render(request, 'campus/view_events.html', {'events': events})
+
+@login_required
+@student_required
+def view_notifications(request):
+    # Ideally, we'd have a Notification model, but for now we'll just show messages if any
+    # or implement a simple placeholder if no model exists.
+    # The current code uses django.contrib.messages which are ephemeral.
+    # Assuming the user wants to see 'sent' notifications or similar?
+    # Based on dashboard, it links to 'view_notifications'.
+    # I'll create a simple template. Logic might need expanding if a persistent Notification model is added.
+    return render(request, 'campus/view_notifications.html')
+
+@login_required
+@student_required
+def check_fee_status(request):
+    fees = FeeDue.objects.filter(student=request.user).order_by('due_date')
+    return render(request, 'campus/check_fee_status.html', {'fees': fees})
+
+@login_required
+@student_required
+def view_my_attendance(request):
+    attendance_records = Attendance.objects.filter(student=request.user).order_by('-date')
     return render(request, 'campus/view_attendance.html', {'attendance_records': attendance_records})

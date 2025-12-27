@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Campus Events - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Upcoming Events</h2>
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">{{ event.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><strong>Date:</strong> {{ event.date }}</p>
+                    <p class="card-text"><strong>Type:</strong> {{ event.type }}</p>
+                    <p class="card-text">{{ event.description }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">No upcoming events.</div>
+    {% endif %}
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

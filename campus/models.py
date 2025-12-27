@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from users.models import CustomUser
 
+
 class Faculty(models.Model):
     name = models.CharField(max_length=100)
 
@@ -108,3 +109,5 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+    
+

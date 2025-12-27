@@ -34,9 +34,15 @@ class CustomLoginView(LoginView):
         if not role or role not in [choice[0] for choice in User.ROLE_CHOICES] or user.role != role:
             messages.error(self.request, "Selected role does not match your account or is invalid.")
             return self.form_invalid(form)
+        
+        # Log in the user (this clears the session)
+        login(self.request, user)
+        
+        # Set session data AFTER login
         self.request.session['role'] = role
         messages.success(self.request, f"Logged in as {role.capitalize()}.")
-        return super().form_valid(form)
+        
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         role = self.request.session.get('role')

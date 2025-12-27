@@ -47,7 +47,7 @@
 
 
 from django.urls import path
-from .views import login_view, student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details
+from .views import login_view, student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details, submit_assignment, assignment_detail, view_exam_dates, view_events, view_notifications, check_fee_status, view_my_attendance
 
 urlpatterns = [
     # Student and Teacher Dashboards
@@ -62,6 +62,17 @@ urlpatterns = [
     
     # Teacher-specific
     path('teacher/add_assignment/', add_assignment, name='add_assignment'),
+
+    # Student-specific
+    path('student/attendance/', view_my_attendance, name='view_my_attendance'),
+    path('student/submit_assignment/', submit_assignment, name='submit_assignment'),
+    path('student/assignment/<int:pk>/', assignment_detail, name='assignment_detail'),
+    path('student/exams/', view_exam_dates, name='view_exam_dates'),
+    path('student/events/', view_events, name='view_events'),
+    path('student/notifications/', view_notifications, name='view_notifications'),
+    path('student/fees/', check_fee_status, name='check_fee_status'),
+
+
     
     # Admin Dashboards and Management
     path('admin/', admin_dashboard, name='admin_dashboard'),

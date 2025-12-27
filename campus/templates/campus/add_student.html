@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Student - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add New Student</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+            <label for="semester" class="form-label">Semester</label>
+            <input type="number" class="form-control" id="semester" name="semester" min="1" max="8" required>
+        </div>
+        <!-- Faculty selection could be dynamic, but for now assuming 'BIM' or text input -->
+        <div class="mb-3">
+            <label for="faculty" class="form-label">Faculty (ID)</label>
+            <select class="form-select" id="faculty" name="faculty">
+                {% for faculty in faculties %}
+                <option value="{{ faculty.id }}">{{ faculty.name }}</option>
+                {% empty %}
+                <option value="">No Faculty Available</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Select the faculty this student belongs to.</div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Add Student</button>
+        <a href="{% url 'mark_attendance' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

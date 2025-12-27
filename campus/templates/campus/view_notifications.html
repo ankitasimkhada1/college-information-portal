@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Notifications - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Notifications</h2>
+    <!-- Since we are using django.contrib.messages for ephemeral notifications, 
+         this page might just show a history if we had a model, or just be a landing page.
+         For now, we display a placeholder message unless we implement a persistent model. 
+         However, the view sends us here. If there are pending messages in the request, they appear in base.html usually. -->
+
+    <div class="alert alert-secondary">
+        <h4 class="alert-heading">No new notifications.</h4>
+        <p>Notifications you receive will appear here or as alerts on your dashboard.</p>
+    </div>
+
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Fee Status - ShankerDev Campus{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Fee Status</h2>
+    {% if fees %}
+    <table class="table table-bordered table-hover">
+        <thead class="table-danger">
+            <tr>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fees %}
+            <tr>
+                <td>{{ fee.due_date }}</td>
+                <td>NRs. {{ fee.amount }}</td>
+                <td class="text-danger fw-bold">Unpaid</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-success">
+        <h4 class="alert-heading">All Clear!</h4>
+        <p>You have no pending fee dues.</p>
+    </div>
+    {% endif %}
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}
