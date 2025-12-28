@@ -61,7 +61,6 @@ class CustomLoginView(LoginView):
             del request.session['role']
         return super().get(request, *args, **kwargs)
 
-@method_decorator(login_required, name='dispatch')
 def register_view(request):
     from .forms import CustomUserCreationForm  # Lazy import
     if request.method == 'POST':
