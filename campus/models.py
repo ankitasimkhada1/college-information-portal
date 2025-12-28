@@ -7,10 +7,16 @@ from users.models import CustomUser
 class Faculty(models.Model):
     name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 class Subject(models.Model):
     name = models.CharField(max_length=100)
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
     semester = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.name} (Sem {self.semester})"
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -79,6 +85,9 @@ class Event(models.Model):
     description = models.TextField()
     date = models.DateField()
     type = models.CharField(max_length=50)  # e.g., tournament
+
+    def __str__(self):
+        return self.title
 
 class Project(models.Model):
     title = models.CharField(max_length=200)

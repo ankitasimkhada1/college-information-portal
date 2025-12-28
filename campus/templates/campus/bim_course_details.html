@@ -1,21 +1,69 @@
 {% extends 'base.html' %}
 {% block title %}BIM Course Details - ShankerDev Campus{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>{{ course_info.title }}</h2>
-    <p><strong>Description:</strong> {{ course_info.description }}</p>
-    <p><strong>Duration:</strong> {{ course_info.duration }}</p>
-    <p><strong>Location:</strong> {{ course_info.location }}</p>
-    {% if course_info.additional_info %}
-    <p><strong>Additional Info:</strong> {{ course_info.additional_info }}</p>
-    {% endif %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<style>
+    .details-container {
+        max-width: 800px;
+        margin: 50px auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+</style>
+
+<div class="container">
+    <div class="details-container">
+        <h2 class="text-center mb-4">{{ course_info.title }}</h2>
+
+        <div class="mb-4">
+            <p><strong>Description:</strong> {{ course_info.description }}</p>
+            <p><strong>Duration:</strong> {{ course_info.duration }}</p>
+            <p><strong>Location:</strong> {{ course_info.location }}</p>
+            {% if course_info.additional_info %}
+            <p><strong>Additional Info:</strong> {{ course_info.additional_info }}</p>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <h3 class="text-center mb-4">Course Structure</h3>
+        <p class="text-center text-muted">The Bachelor of Information Management (BIM) at Tribhuvan University is a
+            four-year course divided into eight semesters.</p>
+
+        {% for semester, subjects in bim_subjects.items %}
+        <div class="card mb-3">
+            <div class="card-header fw-bold">Semester {{ semester }}</div>
+            <ul class="list-group list-group-flush">
+                {% for subject in subjects %}
+                <li class="list-group-item">{{ subject }}</li>
+                {% empty %}
+                <li class="list-group-item text-muted">No subjects found for this semester.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">No subjects found in the database. Please ensure subjects are populated.</div>
+        {% endfor %}
+
+        <h3 class="mt-4">Fee Structure (NPR)</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Batch Year</th>
+                    <th>Fee</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for year, fee in fee_structure.items %}
+                <tr>
+                    <td>{{ year }}</td>
+                    <td>{{ fee }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% endfor %}
-    {% endif %}
 </div>
 {% endblock %}

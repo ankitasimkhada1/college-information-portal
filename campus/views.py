@@ -289,22 +289,24 @@ def admin_required(function):
 @login_required
 @student_required
 def student_dashboard(request):
-    try:
-        profile = StudentProfile.objects.get(user=request.user)
-        attendance_percent = (profile.attended_days / profile.total_days * 100) if profile.total_days else 0
-        if attendance_percent < 80:
-            messages.warning(request, f"Low attendance: {attendance_percent:.1f}%. Contact your faculty.")
-            send_mail(
+    profile, created = StudentProfile.objects.get_or_create(user=request.user)
+    if created:
+        messages.info(request, "Welcome! Your student profile has been created.")
+
+    attendance_percent = (profile.attended_days / profile.total_days * 100) if profile.total_days else 0
+    if attendance_percent < 80:
+        messages.warning(request, f"Low attendance: {attendance_percent:.1f}%. Contact your faculty.")
+        try:
+             send_mail(
                 'Low Attendance Alert',
                 f'Your attendance is {attendance_percent:.1f}%, below 80%. Contact your faculty.',
                 settings.EMAIL_HOST_USER,
                 [request.user.email],
                 fail_silently=True,
             )
-    except StudentProfile.DoesNotExist:
-        messages.error(request, "Your student profile is not set up. Contact an admin.")
-        attendance_percent = 0
-        profile = None
+        except Exception:
+             pass
+
     if profile:
         exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
         fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today()).order_by('due_date')
@@ -609,44 +611,41 @@ def alert_fee_dues(request):
 #             }
 #         }
 #     return render(request, 'campus/bim_course_details.html', context)
-@login_required
 def bim_course_details(request):
-    try:
-        # Use exact match for BIM course or case-insensitive search
-        bim_course = Course.objects.filter(name__iexact='BIM').first()
-        if not bim_course:
-            bim_course = Course.objects.filter(name__icontains='bim').first()
-        context = {
-            'course_info': {
-                'title': bim_course.name if bim_course else 'Bachelor in Information Management (BIM)',
-                'description': bim_course.description if bim_course else 'A 4-year program focusing on IT and management skills.',
-                'duration': bim_course.duration if bim_course else '4 years',
-                'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal',
-                'additional_info': getattr(bim_course, 'additional_info', ''),  # Add more fields if available
-            }
-        }
-    except Course.DoesNotExist:
-        messages.warning(request, "BIM course not found in the database.")
-        context = {
-            'course_info': {
-                'title': 'Bachelor in Information Management (BIM)',
-                'description': 'A 4-year program focusing on IT and management skills.',
-                'duration': '4 years',
-                'location': 'Putalisadak, Kathmandu, Nepal',
-                'additional_info': '',
-            }
-        }
-    except Exception as e:
-        messages.error(request, f"Error loading course details: {str(e)}")
-        context = {
-            'course_info': {
-                'title': 'Bachelor in Information Management (BIM)',
-                'description': 'A 4-year program focusing on IT and management skills.',
-                'duration': '4 years',
-                'location': 'Putalisadak, Kathmandu, Nepal',
-                'additional_info': '',
-            }
-        }
+    # Fetch BIM course info
+    bim_course = Course.objects.filter(name__iexact='BIM').first()
+    if not bim_course:
+        bim_course = Course.objects.filter(name__icontains='bim').first()
+
+    course_info = {
+        'title': 'Bachelor in Information Management (BIM)',
+        'description': 'A 4-year program focusing on IT and management skills.It has 72 credit hours of information technology courses, 27 credit hours of management courses and 27 credit hours of analytical and support course.',
+        'duration': '4 Years(8 Semesters)',
+        'location': 'Putalisadak, Kathmandu, Nepal',
+        'additional_info': getattr(bim_course, 'additional_info', '') if bim_course else '',
+    }
+
+    # Fetch BIM subjects from database
+    subjects = Subject.objects.filter(faculty__name__icontains='BIM').order_by('semester', 'name')
+    
+    # Group by semester
+    bim_subjects = {}
+    for subject in subjects:
+        if subject.semester not in bim_subjects:
+            bim_subjects[subject.semester] = []
+        bim_subjects[subject.semester].append(subject.name)
+    
+    # Sort by semester
+    bim_subjects = dict(sorted(bim_subjects.items()))
+
+    # Hardcoded fee structure as per user requirement
+    fee_structure = {2079: 475000, 2080: 500000, 2081: 525000, 2082: 550000}
+    
+    context = {
+        'course_info': course_info,
+        'bim_subjects': bim_subjects,
+        'fee_structure': fee_structure,
+    }
     return render(request, 'campus/bim_course_details.html', context)
 
 @login_required

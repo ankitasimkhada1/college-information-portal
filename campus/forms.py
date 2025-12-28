@@ -10,6 +10,9 @@ class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
         fields = ('title', 'description', 'subject', 'due_date', 'semester')
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class CourseForm(forms.ModelForm):
     class Meta:
@@ -21,10 +24,13 @@ class ExamRoutineForm(forms.ModelForm):
     class Meta:
         model = ExamRoutine
         fields = ('subject', 'date', 'details')
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class NotificationForm(forms.Form):
     subject = forms.CharField(max_length=200)
-    message = forms.TimeField()
+    message = forms.CharField(widget=forms.Textarea)
     recipients = forms.ModelMultipleChoiceField(queryset=CustomUser.objects.filter(role='student'),
                                   widget=forms.CheckboxSelectMultiple)
 
@@ -36,8 +42,14 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ('title', 'description', 'date', 'type')
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class FeeDueForm(forms.ModelForm):
     class Meta:
         model = FeeDue
         fields = ('student', 'amount', 'due_date')
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+        }
