@@ -24,8 +24,17 @@ class CustomLoginView(LoginView):
             'about_bim': 'Learn about our BIM program and campus facilities.',
             'location': 'Putalisadak, Kathmandu, Nepal'
         }
-        from campus.models import Event  # Lazy import
+        from campus.models import Event, StudentProfile, Course  # Lazy import
         context['events'] = Event.objects.filter(date__gte=timezone.now().date()).order_by('date')[:3]
+        
+        # Student Counts per Semester
+        from django.db.models import Count
+        semester_counts = StudentProfile.objects.values('semester').annotate(count=Count('user')).order_by('semester')
+        context['semester_counts'] = semester_counts
+        
+        # Available Seats
+        context['courses'] = Course.objects.all().order_by('name')
+        
         return context
 
     def form_valid(self, form):
@@ -52,7 +61,8 @@ class CustomLoginView(LoginView):
         elif role == 'teacher':
             return reverse_lazy('teacher_dashboard')
         elif role == 'student':
-            return reverse_lazy('student_dashboard')
+            # return reverse_lazy('student_dashboard')
+            return reverse_lazy('select_semester')
         messages.warning(self.request, "No valid role selected, redirecting to home.")
         return reverse_lazy('home')
 

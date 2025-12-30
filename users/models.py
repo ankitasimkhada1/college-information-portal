@@ -114,7 +114,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
     )
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True, unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
 
     USERNAME_FIELD = 'email'

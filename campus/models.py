@@ -22,6 +22,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     faculty = models.ForeignKey(Faculty, on_delete=models.SET_NULL, null=True)
     semester = models.IntegerField(default=1)
+    section = models.CharField(max_length=10, blank=True, null=True)
     attended_days = models.IntegerField(default=0)
     total_days = models.IntegerField(default=0)  # For attendance percentage
 
@@ -63,6 +64,7 @@ class Assignment(models.Model):
     teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     due_date = models.DateField()
     semester = models.IntegerField()
+    file = models.FileField(upload_to='assignments/', blank=True, null=True)
 
 class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
@@ -74,6 +76,7 @@ class ExamRoutine(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     date = models.DateField()
     details = models.TextField()
+    file = models.FileField(upload_to='exam_routines/', blank=True, null=True)
 
 class FeeDue(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -106,6 +109,15 @@ class Testimonial(models.Model):  # Optional bonus
 class CollegeInfo(models.Model):
     about_bim = models.TextField(default="ShankerDev Campus offers a Bachelor in Information Management (BIM) program.")
     location = models.CharField(max_length=100, default="Kathmandu, Nepal")
+
+class Notification(models.Model):
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_notifications')
+    recipient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+
+    def __str__(self):
+        return f"{self.message[:50]}... ({self.created_at.date()})"
 
 
 

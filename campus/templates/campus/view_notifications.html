@@ -4,15 +4,30 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">My Notifications</h2>
-    <!-- Since we are using django.contrib.messages for ephemeral notifications, 
-         this page might just show a history if we had a model, or just be a landing page.
-         For now, we display a placeholder message unless we implement a persistent model. 
-         However, the view sends us here. If there are pending messages in the request, they appear in base.html usually. -->
-
-    <div class="alert alert-secondary">
-        <h4 class="alert-heading">No new notifications.</h4>
-        <p>Notifications you receive will appear here or as alerts on your dashboard.</p>
+    {% if notifications %}
+    <div class="list-group">
+        {% for note in notifications %}
+        <div
+            class="list-group-item list-group-item-action flex-column align-items-start {% if not note.recipient %}list-group-item-light{% else %}list-group-item-info{% endif %}">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ note.message|linebreaks }}</h5>
+                <small class="text-muted">{{ note.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            {% if note.recipient %}
+            <small class="text-primary"><i class="bi bi-person-check-fill"></i> Personal Alert</small>
+            {% else %}
+            <small class="text-muted"><i class="bi bi-broadcast"></i> Campus Update</small>
+            {% endif %}
+            <small class="text-muted d-block">From: {{ note.created_by.get_full_name|default:"Admin" }}</small>
+        </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="alert alert-secondary">
+        <h4 class="alert-heading">No notifications found.</h4>
+        <p>You're all caught up! Recent campus updates and personal alerts will appear here.</p>
+    </div>
+    {% endif %}
 
     <a href="{% url 'student_dashboard' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
 </div>

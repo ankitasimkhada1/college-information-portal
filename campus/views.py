@@ -1,277 +1,12 @@
-# from django.shortcuts import render, redirect
-# from django.contrib.auth.decorators import login_required, user_passes_test
-# from django.contrib import messages
-# from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm
-# from .models import Attendance, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty
-# from django.contrib.auth import get_user_model
-# from datetime import date
-# from django.core.mail import send_mail
-# from django.conf import settings
-
-# User = get_user_model()
-
-# def student_required(function):
-#     return user_passes_test(lambda u: u.role == 'student' and u.is_authenticated)(function)
-
-# def teacher_required(function):
-#     return user_passes_test(lambda u: u.role == 'teacher' and u.is_authenticated)(function)
-
-# def admin_required(function):
-#     return user_passes_test(lambda u: u.role == 'admin' and u.is_authenticated)(function)
-
-# @login_required
-# @student_required
-# def student_dashboard(request):
-#     profile = StudentProfile.objects.get(user=request.user)
-#     attendance_percent = (profile.attended_days / profile.total_days * 100) if profile.total_days else 0
-#     if attendance_percent < 80:
-#         messages.warning(request, f"Low attendance: {attendance_percent:.1f}%. Contact your faculty.")
-#         send_mail(
-#             'Low Attendance Alert',
-#             f'Your attendance is {attendance_percent:.1f}%, below 80%. Contact your faculty.',
-#             settings.EMAIL_HOST_USER,
-#             [request.user.email],
-#             fail_silently=True,
-#         )
-#     exams = ExamRoutine.objects.filter(date__gte=date.today())
-#     fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today())
-#     events = Event.objects.filter(date__gte=date.today())
-#     assignments = Assignment.objects.filter(semester=profile.semester, due_date__gte=date.today())
-#     subjects = Subject.objects.filter(semester=profile.semester, faculty=profile.faculty)
-#     teachers_present = TeacherAttendance.objects.filter(date=date.today(), present=True)
-#     return render(request, 'campus/student_dashboard.html', {
-#         'attendance_percent': attendance_percent,
-#         'exams': exams,
-#         'fees': fees,
-#         'events': events,
-#         'assignments': assignments,
-#         'subjects': subjects,
-#         'teachers_present': teachers_present,
-#     })
-
-# @login_required
-# @teacher_required
-# def teacher_dashboard(request):
-#     subjects = request.user.teacherprofile.subjects.all()
-#     assignments = Assignment.objects.filter(teacher=request.user)
-#     return render(request, 'campus/teacher_dashboard.html', {
-#         'subjects': subjects,
-#         'assignments': assignments,
-#     })
-
-# @login_required
-# @teacher_required
-# def mark_attendance(request):
-#     if request.method == 'POST':
-#         students = request.POST.getlist('students')
-#         for student_id in students:
-#             student = User.objects.get(id=student_id)
-#             present = student_id in request.POST.getlist('present_students', [])  # Check if marked present
-#             Attendance.objects.update_or_create(
-#                 student=student,
-#                 teacher=request.user,
-#                 date=date.today(),
-#                 defaults={'present': present}
-#             )
-#             profile = StudentProfile.objects.get(user=student)
-#             if present:
-#                 profile.attended_days += 1
-#             profile.total_days += 1
-#             profile.save()
-#         messages.success(request, 'Attendance marked successfully.')
-#         return redirect('teacher_dashboard')
-#     students = User.objects.filter(role='student')
-#     return render(request, 'campus/mark_attendance.html', {'students': students})
-
-# @login_required
-# @teacher_required
-# def mark_teacher_attendance(request):
-#     if request.method == 'POST':
-#         present = request.POST.get('present') == 'on'
-#         TeacherAttendance.objects.update_or_create(
-#             teacher=request.user,
-#             date=date.today(),
-#             defaults={'present': present}
-#         )
-#         messages.success(request, 'Attendance marked.')
-#         return redirect('teacher_dashboard')
-#     return render(request, 'campus/mark_teacher_attendance.html')
-
-# @login_required
-# @teacher_required
-# def add_assignment(request):
-#     if request.method == 'POST':
-#         form = AssignmentForm(request.POST)
-#         if form.is_valid():
-#             assignment = form.save(commit=False)
-#             assignment.teacher = request.user
-#             assignment.save()
-#             messages.success(request, 'Assignment added successfully.')
-#             return redirect('teacher_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = AssignmentForm()
-#     return render(request, 'campus/add_assignment.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def admin_dashboard(request):
-#     courses = CourseForm().fields['course'].queryset  # Assuming Course model exists
-#     events = Event.objects.all()
-#     return render(request, 'campus/admin_dashboard.html', {
-#         'courses': courses,
-#         'events': events,
-#     })
-
-# @login_required
-# @admin_required
-# def manage_courses(request):
-#     if request.method == 'POST':
-#         form = CourseForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Course managed successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = CourseForm()
-#     return render(request, 'campus/manage_courses.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def set_exam_dates(request):
-#     if request.method == 'POST':
-#         form = ExamRoutineForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Exam dates set successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = ExamRoutineForm()
-#     return render(request, 'campus/set_exam_dates.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def send_notifications(request):
-#     if request.method == 'POST':
-#         form = NotificationForm(request.POST)
-#         if form.is_valid():
-#             subject = form.cleaned_data['subject']
-#             message = form.cleaned_data['message']
-#             recipients = form.cleaned_data['recipients']
-#             for user in recipients:
-#                 send_mail(
-#                     subject,
-#                     message,
-#                     settings.EMAIL_HOST_USER,
-#                     [user.email],
-#                     fail_silently=True,
-#                 )
-#             messages.success(request, 'Notifications sent successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = NotificationForm()
-#     return render(request, 'campus/send_notifications.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def update_seats(request):
-#     if request.method == 'POST':
-#         form = UpdateSeatsForm(request.POST)
-#         if form.is_valid():
-#             course = form.cleaned_data['course']
-#             course.available_seats = form.cleaned_data['available_seats']
-#             course.save()
-#             messages.success(request, 'Seats updated successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = UpdateSeatsForm()
-#     return render(request, 'campus/update_seats.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def post_event(request):
-#     if request.method == 'POST':
-#         form = EventForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Event posted successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = EventForm()
-#     return render(request, 'campus/post_event.html', {'form': form})
-
-# @login_required
-# @admin_required
-# def alert_fee_dues(request):
-#     if request.method == 'POST':
-#         form = FeeDueForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Fee due alert sent successfully.')
-#             return redirect('admin_dashboard')
-#         else:
-#             for error in form.errors.values():
-#                 messages.error(request, error)
-#     else:
-#         form = FeeDueForm()
-#     return render(request, 'campus/alert_fee_dues.html', {'form': form})
-
-# # Add the missing bim_course_details view
-# @login_required
-# def bim_course_details(request):
-#     # Assuming a Course model exists; fetch BIM course details
-#     from .models import Course  # Lazy import
-#     bim_course = Course.objects.filter(name__icontains='bim').first()  # Adjust query as needed
-#     context = {
-#         'course_info': {
-#             'title': bim_course.name if bim_course else 'Bachelor in Information Management (BIM)',
-#             'description': bim_course.description if bim_course else 'A 4-year program focusing on IT and management skills.',
-#             'duration': bim_course.duration if bim_course else '4 years',
-#             'location': bim_course.location if bim_course else 'Putalisadak, Kathmandu, Nepal'
-#         }
-#     }
-#     return render(request, 'campus/bim_course_details.html', context)
-
-# @login_required
-# @admin_required
-# def view_attendance(request, role=None):
-#     if role:
-#         attendees = User.objects.filter(role=role)
-#     else:
-#         attendees = User.objects.filter(role='student')  # Default to students
-#     attendance_records = Attendance.objects.filter(
-#         student__in=attendees, date__gte=date.today().replace(day=1)  # Last 30 days
-#     ).order_by('date')
-#     return render(request, 'campus/view_attendance.html', {'attendance_records': attendance_records})
-
-
-
-
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm, SubmissionForm
+from .forms import AssignmentForm, CourseForm, EventForm, ExamRoutineForm, FeeDueForm, NotificationForm, UpdateSeatsForm, SubmissionForm, SemesterSelectionForm
 from .models import Attendance, Course, StudentProfile, TeacherProfile, ExamRoutine, FeeDue, Event, Assignment, TeacherAttendance, Subject, Faculty, Submission
 from django.contrib.auth import get_user_model
-from datetime import date
+from datetime import date, timedelta
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -288,10 +23,31 @@ def admin_required(function):
 
 @login_required
 @student_required
+def select_semester(request):
+    profile, created = StudentProfile.objects.get_or_create(user=request.user)
+    if request.method == 'POST':
+        form = SemesterSelectionForm(request.POST)
+        if form.is_valid():
+            profile.semester = form.cleaned_data['semester']
+            profile.section = form.cleaned_data['section']
+            profile.save()
+            messages.success(request, f"Semester {profile.semester} and Section {profile.section} selected.")
+            return redirect('student_dashboard')
+    else:
+        initial_data = {'semester': profile.semester, 'section': profile.section}
+        form = SemesterSelectionForm(initial=initial_data)
+    return render(request, 'campus/select_semester.html', {'form': form})
+
+@login_required
+@student_required
 def student_dashboard(request):
     profile, created = StudentProfile.objects.get_or_create(user=request.user)
     if created:
         messages.info(request, "Welcome! Your student profile has been created.")
+
+    # Check if section is set, if not redirect to selection (optional safety check)
+    if not profile.section:
+        return redirect('select_semester')
 
     attendance_percent = (profile.attended_days / profile.total_days * 100) if profile.total_days else 0
     if attendance_percent < 80:
@@ -308,7 +64,8 @@ def student_dashboard(request):
              pass
 
     if profile:
-        exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
+        # Filter exams by subjects in the student's semester
+        exams = ExamRoutine.objects.filter(subject__semester=profile.semester, date__gte=date.today()).order_by('date')
         fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today()).order_by('due_date')
         events = Event.objects.filter(date__gte=date.today()).order_by('date')
         # Show all future assignments for the student's semester
@@ -322,6 +79,15 @@ def student_dashboard(request):
         subjects = []
     
     teachers_attendance = TeacherAttendance.objects.filter(date=date.today()).select_related('teacher').order_by('teacher__email')
+    
+    # Fetch recent notifications
+    from .models import Notification
+    from django.db.models import Q
+    recent_notifications = Notification.objects.filter(
+        Q(recipient__isnull=True) | Q(recipient=request.user),
+        created_at__gte=timezone.now() - timedelta(days=7)
+    ).exclude(message__startswith='Seats updated').order_by('-created_at')
+
     return render(request, 'campus/student_dashboard.html', {
         'attendance_percent': attendance_percent,
         'exams': exams,
@@ -330,22 +96,35 @@ def student_dashboard(request):
         'assignments': assignments,
         'subjects': subjects,
         'teachers_attendance': teachers_attendance,
+        'profile': profile,
+        'notifications': recent_notifications,
     })
 
 @login_required
 @teacher_required
 def teacher_dashboard(request):
     try:
+        from django.db.models import Count
         subjects = request.user.teacherprofile.subjects.all().order_by('name')
-        assignments = Assignment.objects.filter(teacher=request.user).order_by('due_date')
+        assignments = Assignment.objects.filter(teacher=request.user).annotate(submission_count=Count('submission')).order_by('due_date')
     except TeacherProfile.DoesNotExist:
         messages.error(request, "Your teacher profile is not set up. Contact an admin.")
         subjects = []
         assignments = []
-    return render(request, 'campus/teacher_dashboard.html', {
+    
+    # Filter notifications for this user or global
+    from django.db.models import Q
+    from .models import Notification
+    recent_notifications = Notification.objects.filter(
+        Q(recipient=None) | Q(recipient=request.user)
+    ).exclude(created_by=request.user).exclude(message__startswith='Seats updated').order_by('-created_at')[:5]
+
+    context = {
         'subjects': subjects,
         'assignments': assignments,
-    })
+        'notifications': recent_notifications,
+    }
+    return render(request, 'campus/teacher_dashboard.html', context)
 @login_required
 @teacher_required
 def mark_attendance(request):
@@ -451,11 +230,23 @@ def mark_teacher_attendance(request):
 @teacher_required
 def add_assignment(request):
     if request.method == 'POST':
-        form = AssignmentForm(request.POST)
+        form = AssignmentForm(request.POST, request.FILES)
         if form.is_valid():
             assignment = form.save(commit=False)
             assignment.teacher = request.user
             assignment.save()
+            # Send targeted notifications to students in the specific semester
+            students = StudentProfile.objects.filter(semester=assignment.semester).select_related('user')
+            
+            for profile in students:
+                create_notification(
+                    f"New Assignment: {assignment.title} (Sem {assignment.semester})\n"
+                    f"Subject: {assignment.subject}\n"
+                    f"Due Date: {assignment.due_date}\n\n"
+                    f"{assignment.description}",
+                    request.user,
+                    recipient=profile.user
+                )
             messages.success(request, 'Assignment added successfully.')
             return redirect('teacher_dashboard')
         else:
@@ -464,6 +255,18 @@ def add_assignment(request):
     else:
         form = AssignmentForm()
     return render(request, 'campus/add_assignment.html', {'form': form})
+
+@login_required
+@teacher_required
+def view_submissions(request, pk):
+    try:
+        assignment = Assignment.objects.get(id=pk, teacher=request.user)
+        submissions = Submission.objects.filter(assignment=assignment).order_by('-submitted_at')
+    except Assignment.DoesNotExist:
+        messages.error(request, "Assignment not found or unauthorized.")
+        return redirect('teacher_dashboard')
+    
+    return render(request, 'campus/view_submissions.html', {'assignment': assignment, 'submissions': submissions})
 
 @login_required
 @admin_required
@@ -479,13 +282,44 @@ def admin_dashboard(request):
         'events': events,
     })
 
+
+
+# Helper to create notifications
+def create_notification(message, user=None, recipient=None):
+    from .models import Notification
+    Notification.objects.create(message=message, created_by=user, recipient=recipient)
+
+# ... (Admin views remain similar, using default recipient=None)
+
+@login_required
+@admin_required
+def alert_fee_dues(request):
+    if request.method == 'POST':
+        form = FeeDueForm(request.POST)
+        if form.is_valid():
+            fee_due = form.save()
+            create_notification(
+                f"Fee Alert: You have a fee due of {fee_due.amount} by {fee_due.due_date}", 
+                request.user, 
+                recipient=fee_due.student
+            )
+            messages.success(request, 'Fee due alert sent successfully.')
+            return redirect('admin_dashboard')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+    else:
+        form = FeeDueForm()
+    return render(request, 'campus/alert_fee_dues.html', {'form': form})
+
 @login_required
 @admin_required
 def manage_courses(request):
     if request.method == 'POST':
         form = CourseForm(request.POST)
         if form.is_valid():
-            form.save()
+            course = form.save()
+            create_notification(f"New course added: {course.name}\n\n{course.description}\nDuration: {course.duration}", request.user)
             messages.success(request, 'Course managed successfully.')
             return redirect('admin_dashboard')
         else:
@@ -499,9 +333,10 @@ def manage_courses(request):
 @admin_required
 def set_exam_dates(request):
     if request.method == 'POST':
-        form = ExamRoutineForm(request.POST)
+        form = ExamRoutineForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            exam = form.save()
+            create_notification(f"Exam date set for {exam.subject}: {exam.details}", request.user)
             messages.success(request, 'Exam dates set successfully.')
             return redirect('admin_dashboard')
         else:
@@ -513,14 +348,39 @@ def set_exam_dates(request):
 
 @login_required
 @admin_required
+def delete_notification(request, pk):
+    from .models import Notification
+    notification = Notification.objects.get(id=pk)
+    if notification.created_by == request.user:
+        notification.delete()
+        messages.success(request, "Notification deleted.")
+    else:
+        messages.error(request, "You can only delete notifications you created.")
+    return redirect('send_notifications')
+
+@login_required
+@admin_required
 def send_notifications(request):
     if request.method == 'POST':
         form = NotificationForm(request.POST)
         if form.is_valid():
             subject = form.cleaned_data['subject']
             message = form.cleaned_data['message']
-            recipients = form.cleaned_data['recipients']
+            recipient_type = form.cleaned_data['recipient_type']
+            
+            recipients = []
+            if recipient_type == 'all_students':
+                recipients = User.objects.filter(role='student')
+            elif recipient_type == 'all_students_teachers':
+                recipients = User.objects.filter(role__in=['student', 'teacher'])
+            else:
+                recipients = form.cleaned_data['recipients']
+                if not recipients:
+                     messages.error(request, "Please select at least one recipient.")
+                     return render(request, 'campus/send_notifications.html', {'form': form})
+
             for user in recipients:
+                # Send Mail
                 send_mail(
                     subject,
                     message,
@@ -528,14 +388,40 @@ def send_notifications(request):
                     [user.email],
                     fail_silently=True,
                 )
+                # Create System Notification for each user to ensure they see it in dashboard
+                # For broadcast, we could optimize by using NULL recipient if the system supported "All", 
+                # but currently models support NULL=Global. 
+                # If we want targeted (e.g. only Students), we must loop or use NULL if "All Students & Teachers" ~ Global.
+                # However, current dashboard query is: Q(recipient__isnull=True) | Q(recipient=request.user)
+                # So if we make recipient=None, it goes to EVERYONE.
+                
+                # If 'all_students_teachers' -> Global (recipient=None)
+                # If 'all_students' -> We don't have a 'role' field in Notification.
+                # So for now, to be safe and accurate, creating individual notifications is best for "All Students",
+                # OR we send one Global Notification if it's for everyone.
+            
+            if recipient_type == 'all_students_teachers':
+                 create_notification(f"Admin Announcement: {subject}\n\n{message}", request.user, recipient=None) # Global
+            else:
+                 # existing loop approach for specific or student-only (unless we add role targeting later)
+                 # Actually, for "All Students", let's loop to avoid showing to Teachers.
+                 filtered_msg = f"Admin Message: {subject}\n\n{message}"
+                 for user in recipients:
+                     create_notification(filtered_msg, request.user, recipient=user)
+
             messages.success(request, 'Notifications sent successfully.')
-            return redirect('admin_dashboard')
+            return redirect('send_notifications')
         else:
             for error in form.errors.values():
                 messages.error(request, error)
     else:
         form = NotificationForm()
-    return render(request, 'campus/send_notifications.html', {'form': form})
+    
+    # Fetch notifications sent by this admin
+    from .models import Notification
+    sent_notifications = Notification.objects.filter(created_by=request.user).order_by('-created_at')
+    
+    return render(request, 'campus/send_notifications.html', {'form': form, 'sent_notifications': sent_notifications})
 
 @login_required
 @admin_required
@@ -561,7 +447,8 @@ def post_event(request):
     if request.method == 'POST':
         form = EventForm(request.POST)
         if form.is_valid():
-            form.save()
+            event = form.save()
+            create_notification(f"New Event: {event.title} on {event.date}\n\n{event.description}", request.user)
             messages.success(request, 'Event posted successfully.')
             return redirect('admin_dashboard')
         else:
@@ -571,21 +458,7 @@ def post_event(request):
         form = EventForm()
     return render(request, 'campus/post_event.html', {'form': form})
 
-@login_required
-@admin_required
-def alert_fee_dues(request):
-    if request.method == 'POST':
-        form = FeeDueForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Fee due alert sent successfully.')
-            return redirect('admin_dashboard')
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-    else:
-        form = FeeDueForm()
-    return render(request, 'campus/alert_fee_dues.html', {'form': form})
+
 
 # @login_required
 # def bim_course_details(request):
@@ -678,7 +551,13 @@ def submit_assignment(request):
 @student_required
 def assignment_detail(request, pk):
     assignment = Assignment.objects.get(id=pk)
+    submission = Submission.objects.filter(assignment=assignment, student=request.user).first()
+    
     if request.method == 'POST':
+        if submission:
+            messages.error(request, "You have already submitted this assignment.")
+            return redirect('assignment_detail', pk=pk)
+
         form = SubmissionForm(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -686,13 +565,21 @@ def assignment_detail(request, pk):
                 submission.assignment = assignment
                 submission.student = request.user
                 submission.save()
+                
+                # Notify Teacher
+                create_notification(
+                    f"New Submission: {request.user.get_full_name()} submitted {assignment.title}",
+                    request.user, 
+                    recipient=assignment.teacher
+                )
+                
                 messages.success(request, "Assignment submitted successfully!")
-                return redirect('student_dashboard')
+                return redirect('assignment_detail', pk=pk)
             except Exception as e:
                 messages.error(request, f"Error submitting assignment: {e}")
     else:
         form = SubmissionForm()
-    return render(request, 'campus/assignment_detail.html', {'assignment': assignment, 'form': form})
+    return render(request, 'campus/assignment_detail.html', {'assignment': assignment, 'form': form, 'submission': submission})
 
 @login_required
 @student_required
@@ -709,13 +596,14 @@ def view_events(request):
 @login_required
 @student_required
 def view_notifications(request):
-    # Ideally, we'd have a Notification model, but for now we'll just show messages if any
-    # or implement a simple placeholder if no model exists.
-    # The current code uses django.contrib.messages which are ephemeral.
-    # Assuming the user wants to see 'sent' notifications or similar?
-    # Based on dashboard, it links to 'view_notifications'.
-    # I'll create a simple template. Logic might need expanding if a persistent Notification model is added.
-    return render(request, 'campus/view_notifications.html')
+    from .models import Notification
+    from django.db.models import Q
+    # Fetch all notifications for this user (Global + Targeted)
+    notifications = Notification.objects.filter(
+        Q(recipient__isnull=True) | Q(recipient=request.user)
+    ).order_by('-created_at')
+    
+    return render(request, 'campus/view_notifications.html', {'notifications': notifications})
 
 @login_required
 @student_required

@@ -11,6 +11,7 @@
                 <th>Subject</th>
                 <th>Date</th>
                 <th>Details</th>
+                <th>Attachment</th>
             </tr>
         </thead>
         <tbody>
@@ -19,6 +20,15 @@
                 <td>{{ exam.subject.name }}</td>
                 <td>{{ exam.date }}</td>
                 <td>{{ exam.details }}</td>
+                <td>
+                    {% if exam.file %}
+                    <a href="{{ exam.file.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        View/Download
+                    </a>
+                    {% else %}
+                    <span class="text-muted">No File</span>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

@@ -47,9 +47,10 @@
 
 
 from django.urls import path
-from .views import login_view, student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details, submit_assignment, assignment_detail, view_exam_dates, view_events, view_notifications, check_fee_status, view_my_attendance
+from .views import login_view, student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details, submit_assignment, assignment_detail, view_exam_dates, view_events, view_notifications, check_fee_status, view_my_attendance, select_semester, view_submissions, delete_notification
 
 urlpatterns = [
+    path('select_semester/', select_semester, name='select_semester'),
     # Student and Teacher Dashboards
     path('student/', student_dashboard, name='student_dashboard'),
     path('teacher/', teacher_dashboard, name='teacher_dashboard'),
@@ -62,6 +63,7 @@ urlpatterns = [
     
     # Teacher-specific
     path('teacher/add_assignment/', add_assignment, name='add_assignment'),
+    path('teacher/assignment/<int:pk>/submissions/', view_submissions, name='view_submissions'),
 
     # Student-specific
     path('student/attendance/', view_my_attendance, name='view_my_attendance'),
@@ -79,6 +81,7 @@ urlpatterns = [
     path('admin/manage_courses/', manage_courses, name='manage_courses'),
     path('admin/set_exam_dates/', set_exam_dates, name='set_exam_dates'),
     path('admin/send_notifications/', send_notifications, name='send_notifications'),
+    path('admin/delete_notification/<int:pk>/', delete_notification, name='delete_notification'),
     path('admin/update_seats/', update_seats, name='update_seats'),
     path('admin/post_event/', post_event, name='post_event'),
     path('admin/alert_fee_dues/', alert_fee_dues, name='alert_fee_dues'),

@@ -1,22 +1,106 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Teacher Dashboard - ShankerDev Campus{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-  <h3>Teacher Dashboard</h3>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Teacher Dashboard</h2>
+    <span class="text-muted">Welcome, {{ user.first_name|default:user.username }}</span>
+  </div>
 
-  <hr>
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card text-center h-100 shadow-sm border-primary">
+        <div class="card-body">
+          <h5 class="card-title text-primary">Student Attendance</h5>
+          <p class="card-text">Mark daily attendance for your classes.</p>
+          <a href="{% url 'mark_attendance' %}" class="btn btn-outline-primary">Mark Attendance</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center h-100 shadow-sm border-success">
+        <div class="card-body">
+          <h5 class="card-title text-success">Assignments</h5>
+          <p class="card-text">Create and manage assignments.</p>
+          <a href="{% url 'add_assignment' %}" class="btn btn-outline-success">Add Assignment</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center h-100 shadow-sm border-warning">
+        <div class="card-body">
+          <h5 class="card-title text-warning">My Attendance</h5>
+          <p class="card-text">Record your own daily attendance.</p>
+          <a href="{% url 'mark_teacher_attendance' %}" class="btn btn-outline-warning">Check In</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <a href="{% url 'add_assignment' %}" class="btn btn-primary">Add Assignment</a>
-  <a href="{% url 'mark_attendance' %}" class="btn btn-secondary">Mark Student Attendance</a>
-  <a href="{% url 'mark_teacher_attendance' %}" class="btn btn-warning">Mark Your Attendance</a>
+  <div class="row">
+    <!-- Active Assignments -->
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Your Active Assignments</h5>
+        </div>
+        <div class="card-body p-0">
+          {% if assignments %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th>Submissions</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in assignments %}
+                <tr>
+                  <td>{{ a.title }}</td>
+                  <td><span class="badge bg-secondary">{{ a.subject.name }}</span></td>
+                  <td>{{ a.submission_count }}</td>
+                  <td>
+                    <a href="{% url 'view_submissions' a.id %}" class="btn btn-sm btn-info text-white">View
+                      Submissions</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-4 text-center text-muted">No active assignments.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
-  <h5 class="mt-4">Your Assignments</h5>
-  <ul class="list-group">
-    {% for a in assignments %}
-    <li class="list-group-item">
-      {{ a.title }} – {{ a.subject.name }} (Marks: {{ a.marks|default:"Pending" }})
-    </li>
-    {% endfor %}
-  </ul>
+    <!-- Recent Notifications -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Recent Updates</h5>
+        </div>
+        <div class="list-group list-group-flush">
+          {% if notifications %}
+          {% for note in notifications|slice:":5" %}
+          <div class="list-group-item">
+            <small class="text-muted d-block">{{ note.created_at|timesince }} ago</small>
+            {{ note.message }}
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="list-group-item text-muted">No recent notifications.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

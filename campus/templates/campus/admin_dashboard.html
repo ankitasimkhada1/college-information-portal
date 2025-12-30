@@ -1,13 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Admin Dashboard - ShankerDev Campus{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2>Admin Dashboard</h2>
-    <a href="{% url 'manage_courses' %}" class="btn btn-primary mb-3">Manage Courses</a>
-    <a href="{% url 'set_exam_dates' %}" class="btn btn-primary mb-3">Set Exam Dates</a>
-    <a href="{% url 'send_notifications' %}" class="btn btn-primary mb-3">Send Notifications</a>
-    <a href="{% url 'update_seats' %}" class="btn btn-primary mb-3">Update Available Seats</a>
-    <a href="{% url 'post_event' %}" class="btn btn-primary mb-3">Post Event</a>
-    <a href="{% url 'alert_fee_dues' %}" class="btn btn-primary mb-3">Alert Fee Dues</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Admin Dashboard</h2>
+        <span class="text-muted">Welcome, Administrator</span>
+    </div>
+
+    <div class="row">
+        <!-- Manage Courses -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Manage Courses</h5>
+                    <p class="card-text">Add, edit, or remove courses and subjects.</p>
+                    <a href="{% url 'manage_courses' %}" class="btn btn-primary">Manage Courses</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Dates -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Exam Dates</h5>
+                    <p class="card-text">Schedule and update examination dates.</p>
+                    <a href="{% url 'set_exam_dates' %}" class="btn btn-outline-danger">Set Exam Dates</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Notifications</h5>
+                    <p class="card-text">Send announcements to students and teachers.</p>
+                    <a href="{% url 'send_notifications' %}" class="btn btn-outline-success">Send Notifications</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Seats -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Update Seats</h5>
+                    <p class="card-text">Update available seat counts for courses.</p>
+                    <a href="{% url 'update_seats' %}" class="btn btn-outline-warning">Update Seats</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Event -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-info">Post Event</h5>
+                    <p class="card-text">Create and publish new campus events.</p>
+                    <a href="{% url 'post_event' %}" class="btn btn-outline-info">Post Event</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Alerts -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-secondary">Fee Alerts</h5>
+                    <p class="card-text">Notify students about pending fee dues.</p>
+                    <a href="{% url 'alert_fee_dues' %}" class="btn btn-outline-secondary">Alert Fee Dues</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

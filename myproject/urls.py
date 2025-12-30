@@ -62,3 +62,9 @@ urlpatterns = [
     # Exclude default login URL to avoid conflict with CustomLoginView
     path('accounts/', include(([], 'django.contrib.auth'), namespace='accounts')),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

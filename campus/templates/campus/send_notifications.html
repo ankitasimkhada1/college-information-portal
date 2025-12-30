@@ -5,13 +5,87 @@
     <h2>Send Notifications</h2>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="mb-3">
+            {{ form.subject.label_tag }}
+            {{ form.subject }}
+        </div>
+        <div class="mb-3">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+        </div>
+
+        <div class="mb-3">
+            <label>Recipients:</label>
+            {{ form.recipient_type }}
+        </div>
+
+        <div id="recipients-field" class="mb-3" style="display:none;">
+            {{ form.recipients.label_tag }}
+            <br>
+            {{ form.recipients }}
+        </div>
         <button type="submit" class="btn btn-primary mt-3">Send</button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const recipientRadios = document.querySelectorAll('input[name="recipient_type"]');
+            const recipientsField = document.getElementById('recipients-field');
+
+            function toggleField() {
+                let selectedValue;
+                for (const radio of recipientRadios) {
+                    if (radio.checked) {
+                        selectedValue = radio.value;
+                        break;
+                    }
+                }
+
+                if (selectedValue === 'specific') {
+                    recipientsField.style.display = 'block';
+                } else {
+                    recipientsField.style.display = 'none';
+                }
+            }
+
+            recipientRadios.forEach(radio => radio.addEventListener('change', toggleField));
+            toggleField(); // Initial state
+        });
+    </script>
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <hr class="mt-5">
+    <h3>Previously Sent Notifications</h3>
+    {% if sent_notifications %}
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for note in sent_notifications %}
+                <tr>
+                    <td>{{ note.created_at|date:"M d, Y H:i" }}</td>
+                    <td>{{ note.message|truncatewords:20 }}</td>
+                    <td>
+                        <a href="{% url 'delete_notification' note.id %}" class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure you want to delete this notification?');">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No notifications sent yet.</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -9,10 +9,14 @@ class SubmissionForm(forms.ModelForm):
 class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ('title', 'description', 'subject', 'due_date', 'semester')
+        fields = ('title', 'description', 'subject', 'due_date', 'semester', 'file')
         widgets = {
             'due_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+class SemesterSelectionForm(forms.Form):
+    semester = forms.IntegerField(min_value=1, max_value=8, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter Semester (1-8)'}))
+    section = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Section'}))
 
 class CourseForm(forms.ModelForm):
     class Meta:
@@ -23,7 +27,7 @@ class CourseForm(forms.ModelForm):
 class ExamRoutineForm(forms.ModelForm):
     class Meta:
         model = ExamRoutine
-        fields = ('subject', 'date', 'details')
+        fields = ('subject', 'date', 'details', 'file')
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -31,8 +35,14 @@ class ExamRoutineForm(forms.ModelForm):
 class NotificationForm(forms.Form):
     subject = forms.CharField(max_length=200)
     message = forms.CharField(widget=forms.Textarea)
+    RECIPIENT_CHOICES = [
+        ('specific', 'Specific Users'),
+        ('all_students', 'All Students'),
+        ('all_students_teachers', 'All Students & Teachers'),
+    ]
+    recipient_type = forms.ChoiceField(choices=RECIPIENT_CHOICES, widget=forms.RadioSelect, initial='specific')
     recipients = forms.ModelMultipleChoiceField(queryset=CustomUser.objects.filter(role='student'),
-                                  widget=forms.CheckboxSelectMultiple)
+                                  widget=forms.CheckboxSelectMultiple, required=False)
 
 class UpdateSeatsForm(forms.Form):
     course = forms.ModelChoiceField(queryset=Course.objects.all())
