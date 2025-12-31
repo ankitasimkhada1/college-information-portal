@@ -46,6 +46,8 @@ class CustomAuthenticationForm(AuthenticationForm):
                 raise ValidationError("Invalid email, phone number, or password.")
             elif user.role != role:
                 raise ValidationError("The selected role does not match your account.")
+            elif not user.is_approved:
+                raise ValidationError("Your account is pending admin approval. Please wait for confirmation.")
             self.user_cache = user
         elif not role:
             raise ValidationError("Please select a role.")

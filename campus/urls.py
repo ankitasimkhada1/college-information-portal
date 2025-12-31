@@ -47,7 +47,7 @@
 
 
 from django.urls import path
-from .views import student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details, submit_assignment, assignment_detail, view_exam_dates, view_events, view_notifications, check_fee_status, view_my_attendance, select_semester, view_submissions, delete_notification
+from .views import student_dashboard, teacher_dashboard, mark_attendance, mark_teacher_attendance, add_assignment, admin_dashboard, manage_courses, set_exam_dates, send_notifications, update_seats, post_event, alert_fee_dues, view_attendance, bim_course_details, submit_assignment, assignment_detail, view_exam_dates, view_events, view_notifications, check_fee_status, view_my_attendance, select_semester, view_submissions, delete_notification, approve_user
 
 urlpatterns = [
     path('select_semester/', select_semester, name='select_semester'),
@@ -88,4 +88,5 @@ urlpatterns = [
 
     # Additional Paths
     path('bim-course-details/', bim_course_details, name='bim_course_details'),
+    path('admin/approve_user/<int:user_id>/', approve_user, name='approve_user'),
 ]

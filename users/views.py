@@ -12,74 +12,8 @@ from django.contrib.auth.decorators import login_required
 
 User = get_user_model()
 
-@method_decorator(sensitive_post_parameters('password'), name='dispatch')
-class CustomLoginView(LoginView):
-    template_name = 'registration/login.html'
+# CustomLoginView removed as per user request
 
-    def get_form_class(self):
-        from .forms import CustomAuthenticationForm  # Lazy import
-        return CustomAuthenticationForm
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['college_info'] = {
-            'about_bim': 'Learn about our BIM program and campus facilities.',
-            'location': 'Putalisadak, Kathmandu, Nepal'
-        }
-        from campus.models import Event, StudentProfile, Course  # Lazy import
-        context['events'] = Event.objects.filter(date__gte=timezone.now().date()).order_by('date')[:3]
-        
-        # Student Counts per Semester
-        from django.db.models import Count
-        semester_counts = StudentProfile.objects.values('semester').annotate(count=Count('user')).order_by('semester')
-        context['semester_counts'] = semester_counts
-        
-        # Available Seats
-        context['courses'] = Course.objects.all().order_by('name')
-        
-        return context
-
-    def form_valid(self, form):
-        user = form.get_user()
-        role = self.request.POST.get('role')
-        if not role or role not in [choice[0] for choice in User.ROLE_CHOICES] or user.role != role:
-            messages.error(self.request, "Selected role does not match your account or is invalid.")
-            return self.form_invalid(form)
-        
-        # Log in the user (this clears the session)
-        login(self.request, user)
-        
-        # Set session data AFTER login
-        self.request.session['role'] = role
-        messages.success(self.request, f"Logged in as {role.capitalize()}.")
-        
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        role = self.request.session.get('role')
-        print(f"Role from session: {role}")
-        if role == 'admin' and self.request.user.is_superuser:
-            # Prevent admin login here if we want strict separation, but session role check handles redirect
-            # We can enforce logout if admin tries to login here in form_valid, but plan says "Update login_view"
-            # Since this is strictly "Student/Teacher Login" page now
-            pass 
-            
-        if role == 'admin':
-             messages.error(self.request, "Admins must use the Admin Login page.")
-             return reverse_lazy('login')
-             
-        elif role == 'teacher':
-            return reverse_lazy('teacher_dashboard')
-        elif role == 'student':
-            # return reverse_lazy('student_dashboard')
-            return reverse_lazy('select_semester')
-        messages.warning(self.request, "No valid role selected, redirecting to home.")
-        return reverse_lazy('home')
-
-    def get(self, request, *args, **kwargs):
-        if 'role' in request.session:
-            del request.session['role']
-        return super().get(request, *args, **kwargs)
 
 def register_view(request):
     from .forms import CustomUserCreationForm  # Lazy import

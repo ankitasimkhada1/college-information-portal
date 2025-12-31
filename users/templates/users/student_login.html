@@ -44,6 +44,9 @@
                 </form>
             </div>
             <div class="card-footer text-center">
+                <div class="mb-2">
+                    <small>Don't have an account? <a href="{% url 'register' %}" class="fw-bold">Register</a></small>
+                </div>
                 <small>Wrong Role? <a href="{% url 'login_selection' %}">Select Different Login</a></small>
                 <div class="mt-2">
                     <small><a href="{% url 'home' %}" class="text-secondary"><i class="bi bi-arrow-left me-1"></i>Back

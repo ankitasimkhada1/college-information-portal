@@ -148,7 +148,7 @@ EMAIL_HOST_PASSWORD = 'ankita123'
 
 
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/student-login/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

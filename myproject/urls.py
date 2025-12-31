@@ -44,7 +44,7 @@ from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from django.views.generic.base import RedirectView
 from django.views.generic.base import RedirectView
-from users.views import CustomLoginView, register_view, logout_view
+from users.views import StudentLoginView, register_view, logout_view
 from campus.views import student_dashboard, teacher_dashboard, admin_dashboard, bim_course_details
 from myproject.views import home_view
 
@@ -54,7 +54,7 @@ urlpatterns = [
     path('campus/', include('campus.urls')),  # All campus-related paths, including attendance
     path('users/', include('users.urls')), # Include users URLs
     path('', home_view, name='home'),
-    path('login/', CustomLoginView.as_view(), name='login'),  # Custom login view
+    path('login/', StudentLoginView.as_view(), name='login'),  # Student login as default
     path('logout/', logout_view, name='logout'),
     path('register/', register_view, name='register'),
     path('student-dashboard/', student_dashboard, name='student_dashboard'),

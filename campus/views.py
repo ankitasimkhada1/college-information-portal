@@ -272,10 +272,13 @@ def admin_dashboard(request):
     except Exception:
         courses = []
         messages.error(request, "Could not load courses. Check database.")
-    events = Event.objects.all().order_by('date')
+    events = Event.objects.filter(date__gte=date.today()).order_by('date')
+    pending_users = User.objects.filter(is_approved=False).order_by('-date_joined')
+    
     return render(request, 'campus/admin_dashboard.html', {
         'courses': courses,
         'events': events,
+        'pending_users': pending_users,
     })
 
 
@@ -616,3 +619,28 @@ def check_fee_status(request):
 def view_my_attendance(request):
     attendance_records = Attendance.objects.filter(student=request.user).order_by('-date')
     return render(request, 'campus/view_attendance.html', {'attendance_records': attendance_records})
+
+@login_required
+@admin_required
+def approve_user(request, user_id):
+    from django.shortcuts import get_object_or_404
+    user = get_object_or_404(User, id=user_id)
+    user.is_approved = True
+    user.save()
+    
+    # Optional: Send approval email
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        send_mail(
+            'Account Approved',
+            f'Hello {user.first_name},\n\nYour account has been approved by the admin. You can now login.',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=True,
+        )
+    except Exception:
+        pass
+        
+    messages.success(request, f"User {user.email} has been approved.")
+    return redirect('admin_dashboard')
