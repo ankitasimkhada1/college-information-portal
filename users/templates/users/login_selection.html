@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Login Role{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Login to Portal</h2>
+        <p class="text-muted">Please select your role to continue.</p>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <!-- Admin Card -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 shadow border-danger text-center hover-card">
+                <div class="card-body py-5">
+                    <div class="mb-3 text-danger">
+                        <i class="bi bi-shield-lock-fill fs-1"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-danger">Admin</h4>
+                    <p class="card-text text-muted small">Manage College, Users, and Settings.</p>
+                    <a href="{% url 'admin_login' %}" class="btn btn-danger w-100 rounded-pill mt-3">Admin Login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Card -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 shadow border-success text-center hover-card">
+                <div class="card-body py-5">
+                    <div class="mb-3 text-success">
+                        <i class="bi bi-person-video3 fs-1"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-success">Teacher</h4>
+                    <p class="card-text text-muted small">Manage Assignments, Attendance, and Grades.</p>
+                    <a href="{% url 'teacher_login' %}" class="btn btn-success w-100 rounded-pill mt-3">Teacher
+                        Login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Card -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 shadow border-primary text-center hover-card">
+                <div class="card-body py-5">
+                    <div class="mb-3 text-primary">
+                        <i class="bi bi-mortarboard-fill fs-1"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-primary">Student</h4>
+                    <p class="card-text text-muted small">Access Dashboard, Routines, and Results.</p>
+                    <a href="{% url 'student_login' %}" class="btn btn-primary w-100 rounded-pill mt-3">Student
+                        Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-5">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill px-4">
+        <i class="bi bi-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+{% endblock %}

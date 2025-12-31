@@ -24,6 +24,13 @@
             <br>
             {{ form.recipients }}
         </div>
+
+        <div id="semester-field" class="mb-3" style="display:none;">
+            {{ form.semester.label_tag }}
+            {{ form.semester }}
+            <small class="form-text text-muted">Enter semester number (1-8).</small>
+        </div>
+
         <button type="submit" class="btn btn-primary mt-3">Send</button>
     </form>
 
@@ -31,6 +38,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const recipientRadios = document.querySelectorAll('input[name="recipient_type"]');
             const recipientsField = document.getElementById('recipients-field');
+            const semesterField = document.getElementById('semester-field');
 
             function toggleField() {
                 let selectedValue;
@@ -43,8 +51,13 @@
 
                 if (selectedValue === 'specific') {
                     recipientsField.style.display = 'block';
+                    semesterField.style.display = 'none';
+                } else if (selectedValue === 'specific_semester') {
+                    recipientsField.style.display = 'none';
+                    semesterField.style.display = 'block';
                 } else {
                     recipientsField.style.display = 'none';
+                    semesterField.style.display = 'none';
                 }
             }
 

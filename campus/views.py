@@ -65,6 +65,7 @@ def student_dashboard(request):
 
     if profile:
         # Filter exams by subjects in the student's semester
+        # Filter exams by subjects in the student's semester
         exams = ExamRoutine.objects.filter(subject__semester=profile.semester, date__gte=date.today()).order_by('date')
         fees = FeeDue.objects.filter(student=request.user, due_date__gte=date.today()).order_by('due_date')
         events = Event.objects.filter(date__gte=date.today()).order_by('date')
@@ -83,8 +84,16 @@ def student_dashboard(request):
     # Fetch recent notifications
     from .models import Notification
     from django.db.models import Q
+    
+    # Filter: 
+    # 1. Targeted to user (recipient=user)
+    # 2. Global (recipient=None AND semester=None)
+    # 3. Semester specific (recipient=None AND semester=user_semester)
+    
+    semester_filter = Q(recipient=None, semester=profile.semester) if profile.semester else Q(recipient=None, semester__isnull=True)
+    
     recent_notifications = Notification.objects.filter(
-        Q(recipient__isnull=True) | Q(recipient=request.user),
+        Q(recipient=request.user) | (Q(recipient__isnull=True) & Q(semester__isnull=True)) | semester_filter,
         created_at__gte=timezone.now() - timedelta(days=7)
     ).exclude(message__startswith='Seats updated').order_by('-created_at')
 
@@ -162,18 +171,7 @@ def mark_attendance(request):
     students = User.objects.filter(role='student').order_by('email')
  
     return render(request, 'campus/mark_attendance.html', {'students': students})
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            next_url = request.GET.get('next', 'teacher_dashboard')
-            return redirect(next_url)
-        else:
-            messages.error(request, 'Invalid credentials.')
-    return render(request, 'campus/login.html', {'next': request.GET.get('next')})
+
 # @login_required
 # @teacher_required
 # def mark_attendance(request):
@@ -235,18 +233,16 @@ def add_assignment(request):
             assignment = form.save(commit=False)
             assignment.teacher = request.user
             assignment.save()
-            # Send targeted notifications to students in the specific semester
-            students = StudentProfile.objects.filter(semester=assignment.semester).select_related('user')
-            
-            for profile in students:
-                create_notification(
-                    f"New Assignment: {assignment.title} (Sem {assignment.semester})\n"
-                    f"Subject: {assignment.subject}\n"
-                    f"Due Date: {assignment.due_date}\n\n"
-                    f"{assignment.description}",
-                    request.user,
-                    recipient=profile.user
-                )
+            assignment.save()
+            # Send targeted notification to semester
+            create_notification(
+                f"New Assignment: {assignment.title} (Sem {assignment.semester})\n"
+                f"Subject: {assignment.subject}\n"
+                f"Due Date: {assignment.due_date}\n\n"
+                f"Description: {assignment.description}",
+                request.user,
+                semester=assignment.semester
+            )
             messages.success(request, 'Assignment added successfully.')
             return redirect('teacher_dashboard')
         else:
@@ -285,9 +281,9 @@ def admin_dashboard(request):
 
 
 # Helper to create notifications
-def create_notification(message, user=None, recipient=None):
+def create_notification(message, user=None, recipient=None, semester=None):
     from .models import Notification
-    Notification.objects.create(message=message, created_by=user, recipient=recipient)
+    Notification.objects.create(message=message, created_by=user, recipient=recipient, semester=semester)
 
 # ... (Admin views remain similar, using default recipient=None)
 
@@ -336,8 +332,10 @@ def set_exam_dates(request):
         form = ExamRoutineForm(request.POST, request.FILES)
         if form.is_valid():
             exam = form.save()
-            create_notification(f"Exam date set for {exam.subject}: {exam.details}", request.user)
-            messages.success(request, 'Exam dates set successfully.')
+            title = exam.title if exam.title else f"Routine for Semester {exam.semester}"
+            create_notification(f"Exam Routine Uploaded: {title}", request.user, semester=exam.semester)
+            
+            messages.success(request, 'Exam routine updated successfully.')
             return redirect('admin_dashboard')
         else:
             for error in form.errors.values():
@@ -367,12 +365,21 @@ def send_notifications(request):
             subject = form.cleaned_data['subject']
             message = form.cleaned_data['message']
             recipient_type = form.cleaned_data['recipient_type']
+            semester = form.cleaned_data.get('semester')
             
             recipients = []
             if recipient_type == 'all_students':
                 recipients = User.objects.filter(role='student')
             elif recipient_type == 'all_students_teachers':
                 recipients = User.objects.filter(role__in=['student', 'teacher'])
+            elif recipient_type == 'specific_semester':
+                 if not semester:
+                     messages.error(request, "Please specify a semester.")
+                     return render(request, 'campus/send_notifications.html', {'form': form})
+                 # Create one notification for the semester
+                 create_notification(f"Announcement (Sem {semester}): {subject}\n\n{message}", request.user, semester=semester)
+                 messages.success(request, f'Notification sent to Semester {semester}.')
+                 return redirect('send_notifications')
             else:
                 recipients = form.cleaned_data['recipients']
                 if not recipients:
@@ -388,23 +395,11 @@ def send_notifications(request):
                     [user.email],
                     fail_silently=True,
                 )
-                # Create System Notification for each user to ensure they see it in dashboard
-                # For broadcast, we could optimize by using NULL recipient if the system supported "All", 
-                # but currently models support NULL=Global. 
-                # If we want targeted (e.g. only Students), we must loop or use NULL if "All Students & Teachers" ~ Global.
-                # However, current dashboard query is: Q(recipient__isnull=True) | Q(recipient=request.user)
-                # So if we make recipient=None, it goes to EVERYONE.
-                
-                # If 'all_students_teachers' -> Global (recipient=None)
-                # If 'all_students' -> We don't have a 'role' field in Notification.
-                # So for now, to be safe and accurate, creating individual notifications is best for "All Students",
-                # OR we send one Global Notification if it's for everyone.
-            
+             
             if recipient_type == 'all_students_teachers':
                  create_notification(f"Admin Announcement: {subject}\n\n{message}", request.user, recipient=None) # Global
             else:
-                 # existing loop approach for specific or student-only (unless we add role targeting later)
-                 # Actually, for "All Students", let's loop to avoid showing to Teachers.
+                 # Loop for specific or all_students
                  filtered_msg = f"Admin Message: {subject}\n\n{message}"
                  for user in recipients:
                      create_notification(filtered_msg, request.user, recipient=user)
@@ -584,8 +579,10 @@ def assignment_detail(request, pk):
 @login_required
 @student_required
 def view_exam_dates(request):
-    exams = ExamRoutine.objects.filter(date__gte=date.today()).order_by('date')
-    return render(request, 'campus/view_exam_dates.html', {'exams': exams})
+    profile, _ = StudentProfile.objects.get_or_create(user=request.user)
+    exams = ExamRoutine.objects.filter(subject__semester=profile.semester, date__gte=date.today()).order_by('date')
+    routine_images = ExamRoutine.objects.filter(semester=profile.semester, file__isnull=False).order_by('-id')
+    return render(request, 'campus/view_exam_dates.html', {'exams': exams, 'routine_images': routine_images})
 
 @login_required
 @student_required
@@ -598,9 +595,12 @@ def view_events(request):
 def view_notifications(request):
     from .models import Notification
     from django.db.models import Q
-    # Fetch all notifications for this user (Global + Targeted)
+    # Fetch all notifications for this user (Global + Targeted + Semester)
+    profile, _ = StudentProfile.objects.get_or_create(user=request.user)
+    semester_filter = Q(recipient=None, semester=profile.semester) if profile.semester else Q(recipient=None, semester__isnull=True)
+    
     notifications = Notification.objects.filter(
-        Q(recipient__isnull=True) | Q(recipient=request.user)
+        Q(recipient=request.user) | (Q(recipient__isnull=True) & Q(semester__isnull=True)) | semester_filter
     ).order_by('-created_at')
     
     return render(request, 'campus/view_notifications.html', {'notifications': notifications})

@@ -34,6 +34,9 @@ class CustomAuthenticationForm(AuthenticationForm):
         password = cleaned_data.get('password')
         role = cleaned_data.get('role')
 
+        if role == 'admin':
+            raise ValidationError("Admins must use the Admin Login page (see link above).")
+
         if email_or_phone and password and role:
             user = authenticate(self.request, username=email_or_phone, password=password)
             if user is None:
@@ -79,6 +82,37 @@ class CustomUserCreationForm(UserCreationForm):
             username = f"{base_username}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
         user.username = username
         user.role = self.cleaned_data['role']
+        if commit:
+            user.save()
+        return user
+        
+class AddUserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('email', 'role', 'first_name', 'last_name', 'phone_number')
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number (Optional)'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already in use.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Generate username unique to this user
+        base_username = user.email.split('@')[0].replace('.', '_')
+        username = f"{base_username}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        user.username = username
+        
         if commit:
             user.save()
         return user

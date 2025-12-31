@@ -73,10 +73,14 @@ class Submission(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
 
 class ExamRoutine(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    date = models.DateField()
-    details = models.TextField()
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    details = models.TextField(blank=True)
     file = models.FileField(upload_to='exam_routines/', blank=True, null=True)
+    semester = models.IntegerField(null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True, help_text="Optional title for the routine image")
+    start_date = models.DateField(null=True, blank=True, help_text="Exam starting date")
+    end_date = models.DateField(null=True, blank=True, help_text="Exam ending date")
 
 class FeeDue(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -115,6 +119,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_notifications')
     recipient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    semester = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.message[:50]}... ({self.created_at.date()})"

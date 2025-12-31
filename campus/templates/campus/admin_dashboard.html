@@ -11,17 +11,6 @@
     </div>
 
     <div class="row">
-        <!-- Manage Courses -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm border-primary">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-primary">Manage Courses</h5>
-                    <p class="card-text">Add, edit, or remove courses and subjects.</p>
-                    <a href="{% url 'manage_courses' %}" class="btn btn-primary">Manage Courses</a>
-                </div>
-            </div>
-        </div>
-
         <!-- Exam Dates -->
         <div class="col-md-4 mb-4">
             <div class="card h-100 shadow-sm border-danger">
@@ -73,6 +62,17 @@
                     <h5 class="card-title text-secondary">Fee Alerts</h5>
                     <p class="card-text">Notify students about pending fee dues.</p>
                     <a href="{% url 'alert_fee_dues' %}" class="btn btn-outline-secondary">Alert Fee Dues</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register User -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Register User</h5>
+                    <p class="card-text">Create new Student or Teacher accounts.</p>
+                    <a href="{% url 'add_user' %}" class="btn btn-outline-primary">Register New User</a>
                 </div>
             </div>
         </div>

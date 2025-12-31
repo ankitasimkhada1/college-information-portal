@@ -95,7 +95,46 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 
 def home_view(request):
-    return render(request, 'home.html')  # Create a home.html template
+    from campus.models import Event, StudentProfile, Course
+    from django.db.models import Count
+    from django.utils import timezone
+
+    # Fetch Events
+    events = Event.objects.filter(date__gte=timezone.now().date()).order_by('date')[:3]
+    
+    # Fetch Courses (for Seats and Info)
+    courses = Course.objects.all().order_by('name')
+    
+    # Student Stats
+    semester_counts = StudentProfile.objects.values('semester').annotate(count=Count('user')).order_by('semester')
+    
+    # Fee Structure (Hardcoded for display)
+    fee_structure = {
+        '2079': '4,75,000',
+        '2080': '5,00,000',
+        '2081': '5,25,000',
+        '2082': '5,50,000'
+    }
+
+    bim_subjects = {
+        1: ["Principles of Management", "English Composition", "Basic Mathematics", "Computer Information System", "C Programming"],
+        2: ["Business Communications", "Digital Logic", "Discrete Structure", "Object Oriented Programming with Java", "Organizational Behavior & Human Resource Management"],
+        3: ["Business Statistics", "Data Structure and Algorithms", "Financial Accounting", "Microprocessor and Computer Architecture", "Web Technology I"],
+        4: ["Business Data Communication and Networking", "Cost and Management Accounting", "Database Management System", "Economics for Business", "Operating System", "Web Technology II"],
+        5: ["Artificial Intelligence", "Fundamentals of Marketing", "Information Security", "Programming with Python", "Software Design and Development"],
+        6: ["Business Environment", "Business Information Systems", "Business Research Methods", "Fundamentals of Corporate Finance", "IT Ethics and Cybersecurity", "Project"],
+        7: ["E-Commerce and Internet Marketing", "Elective I", "Operations Management", "Sociology for Business Management", "Strategic Management"],
+        8: ["Business Intelligence", "Digital Economy", "Economics of Information and Communication", "Elective II", "Internship"],
+    }
+
+    context = {
+        'events': events,
+        'courses': courses,
+        'semester_counts': semester_counts,
+        'fee_structure': fee_structure,
+        'bim_subjects': bim_subjects,
+    }
+    return render(request, 'home.html', context)
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
@@ -115,7 +154,7 @@ class CustomLoginView(LoginView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         bim_subjects = {
-            1: ["Principles of Management", "English Composition", "Basic Mathematics", "Computer Information System", "Digital Logic Design"],
+            1: ["Principles of Management", "English Composition", "Basic Mathematics", "Computer Information System", "C Programming"],
             2: ["Business Communications", "Digital Logic", "Discrete Structure", "Object Oriented Programming with Java", "Organizational Behavior & Human Resource Management"],
             3: ["Business Statistics", "Data Structure and Algorithms", "Financial Accounting", "Microprocessor and Computer Architecture", "Web Technology I"],
             4: ["Business Data Communication and Networking", "Cost and Management Accounting", "Database Management System", "Economics for Business", "Operating System", "Web Technology II"],

@@ -1,5 +1,151 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome - ShankerDev Campus{% endblock %}
+
 {% block content %}
-<h2>Welcome to ShankerDev Campus</h2>
-<p>Please <a href="{% url 'login' %}">log in</a> or <a href="{% url 'register' %}">register</a>.</p>
+<!-- Hero Section -->
+<div class="p-5 mb-4 bg-light rounded-3 jumbotron-custom position-relative"
+    style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); color: white;">
+    <div class="container-fluid py-5 text-center">
+        <h1 class="display-3 fw-bold">Welcome to ShankerDev Campus</h1>
+        <p class="col-md-8 fs-4 mx-auto">Excellence in Education. Shaping Future Leaders in Technology and Management.
+        </p>
+        <div class="mt-4">
+            <a href="{% url 'login_selection' %}"
+                class="btn btn-warning btn-lg px-5 fw-bold shadow-lg rounded-pill">Login to Portal</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- About Section -->
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-6">
+            <h2 class="text-primary fw-bold">About ShankerDev Campus</h2>
+            <p class="lead text-muted">A premier institution dedicated to providing top-tier education in Business and
+                Information Management.</p>
+            <p class="lead text-muted" >Located in the heart of Kathmandu, Putalisadak, we offer many facilities and a curriculum
+                designed to meet industry demands. Our BIM program blends IT proficiency with management skills.</p>
+        </div>
+        <div class="col-md-6 text-center">
+            <!-- Placeholder for Campus Image if available -->
+            <div class="bg-secondary rounded shadow p-5 text-white">
+        
+                <img src="{% static 'images/sdc.jpg' %}" alt="ShankerDev Campus" class="img-fluid rounded shadow mb-4" style="max-height: 400px;">
+
+            </div>
+        </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <!-- Events & Seats Row -->
+    <div class="row mb-5">
+        <!-- Upcoming Events -->
+        <div class="col-md-6">
+            <h3 class="border-bottom pb-2 mb-3 text-success">Upcoming Events</h3>
+            {% if events %}
+            <div class="list-group">
+                {% for event in events %}
+                <div
+                    class="list-group-item list-group-item-action flex-column align-items-start shadow-sm mb-2 border-0">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1 fw-bold text-dark">{{ event.title }}</h5>
+                        <small class="text-white bg-success badge rounded-pill">{{ event.date }}</small>
+                    </div>
+                    <p class="mb-1 text-muted">{{ event.description|truncatewords:20 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">No upcoming events at the moment.</div>
+            {% endif %}
+        </div>
+
+        <!-- Available Seats -->
+        <div class="col-md-6">
+            <h3 class="border-bottom pb-2 mb-3 text-info">Admission Open: Available Seats</h3>
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+                {% for course in courses %}
+                <div class="col">
+                    <div class="card h-100 border-info shadow-sm">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-info">{{ course.name }}</h5>
+                            <h2 class="display-4 fw-bold">{{ course.available_seats }}</h2>
+                            <p class="card-text text-muted">Seats Remaining</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No course information available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Stats Section -->
+    <div class="mb-5 bg-white p-4 rounded shadow-sm border">
+        <h3 class="text-center mb-4 text-warning">Student Distribution</h3>
+        <div class="row text-center">
+            {% for stat in semester_counts %}
+            <div class="col-6 col-md-3 mb-3">
+                <div class="p-3 border rounded bg-light">
+                    <h4 class="fw-bold text-primary">Sem {{ stat.semester }}</h4>
+                    <span class="fs-4 badge bg-secondary">{{ stat.count }} Students</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">No student data available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- BIM Course Structure -->
+    <div class="mb-5">
+        <h3 class="text-center mb-4 text-primary">Course Structure (BIM)</h3>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            {% for semester, subjects in bim_subjects.items %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h5 class="card-title mb-0">Semester {{ semester }}</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for subject in subjects %}
+                        <li class="list-group-item small">{{ subject }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Fee Structure Preview -->
+    <div class="mb-5">
+        <h3 class="text-center mb-4 text-dark">Fee Structure (BIM)</h3>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover shadow-sm border">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Batch (Year)</th>
+                        <th>Total Fee (NPR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for year, fee in fee_structure.items %}
+                    <tr>
+                        <td>{{ year }}</td>
+                        <td>Rs. {{ fee }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
 {% endblock %}
