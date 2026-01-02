@@ -1,4 +1,4 @@
-{% comment %} 
+{% comment %}
 {% extends 'base.html' %}
 {% block title %}Teacher Dashboard{% endblock %}
 {% block content %}
@@ -6,7 +6,7 @@
 <p>Role: {{ user.role }}</p>
 <p>Manage courses and grades here (to be implemented).</p>
 {% endblock %} {% endcomment %}
- 
+
 {% extends 'base.html' %}
 {% block title %}Teacher Dashboard{% endblock %}
 {% block content %}
@@ -28,7 +28,7 @@
             <label>Select Student</label>
             <select name="student_id" class="form-select">
                 {% for student in students %}
-                    <option value="{{ student.id }}">{{ student.username }}</option>
+                <option value="{{ student.id }}">{{ student.username }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -45,7 +45,7 @@
             <label>Select Student</label>
             <select name="student_id" class="form-select">
                 {% for student in students %}
-                    <option value="{{ student.id }}">{{ student.username }}</option>
+                <option value="{{ student.id }}">{{ student.username }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -66,14 +66,23 @@
     <h3>Your Attendances</h3>
     <ul>
         {% for attendance in attendances %}
-            <li>{{ attendance.date }} - {{ attendance.present|yesno:"Present,Absent" }}</li>
+        <li>{{ attendance.date }} - {{ attendance.present|yesno:"Present,Absent" }}</li>
         {% endfor %}
     </ul>
     <h3>Assigned Tasks</h3>
     <ul>
         {% for task in tasks %}
-            <li>{{ task.title }} for {{ task.student.username }} - Due: {{ task.due_date }} - {{ task.completed|yesno:"Completed,Pending" }}</li>
+        <li>{{ task.title }} for {{ task.student.username }} - Due: {{ task.due_date }} - {{
+            task.completed|yesno:"Completed,Pending" }}</li>
         {% endfor %}
     </ul>
+    <script>
+        // Set minimum date to today for due_date input
+        const dateInput = document.querySelector('input[name="due_date"]');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+        }
+    </script>
 </div>
 {% endblock %}

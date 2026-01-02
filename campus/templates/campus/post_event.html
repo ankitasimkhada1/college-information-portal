@@ -9,9 +9,18 @@
         <button type="submit" class="btn btn-primary mt-3">Post</button>
     </form>
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
     {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.querySelector('input[name="date"]');
+            if (dateInput) {
+                dateInput.setAttribute('min', today);
+            }
+        });
+    </script>
 </div>
 {% endblock %}

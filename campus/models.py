@@ -43,7 +43,7 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.email} - {self.date} ({'Present' if self.present else 'Absent'})"
-# campus/models.py
+    
 class TeacherAttendance(models.Model):
     teacher = models.ForeignKey(
         CustomUser,

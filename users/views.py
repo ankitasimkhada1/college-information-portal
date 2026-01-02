@@ -22,7 +22,12 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             messages.success(request, f"Registration successful! Please log in with your credentials.")
-            return redirect('login')
+            if user.role == 'teacher':
+                return redirect('teacher_login')
+            elif user.role == 'student':
+                return redirect('student_login')
+            else:
+                return redirect('login')
         else:
             for error in form.errors.values():
                 messages.error(request, error)
@@ -37,6 +42,11 @@ class AdminLoginView(LoginView):
     
     def form_valid(self, form):
         user = form.get_user()
+        # Strictly allow only the specific admin email from setup_admin.py
+        if user.email != 'admin@shankerdev.edu':
+             messages.error(self.request, "Access Denied. Only the main administrator can login here.")
+             return self.form_invalid(form)
+             
         if user.role != 'admin' and not user.is_superuser:
              messages.error(self.request, "Access Denied. Admins only.")
              return self.form_invalid(form)
