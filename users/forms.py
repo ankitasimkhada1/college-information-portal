@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+import re
 
 User = get_user_model()
 
@@ -73,7 +74,21 @@ class CustomUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if email and User.objects.filter(email=email).exists():
             raise ValidationError("This email is already in use.")
+        if email:
+            # Stricter regex for email validation (e.g., .com, .org, .edu.np)
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}(\.[a-zA-Z]{2,3})?$', email):
+                raise ValidationError("Enter a valid email address.")
+            if User.objects.filter(email=email).exists():
+                raise ValidationError("This email is already in use.")
         return email
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            if not re.match(r'^\d{10}$', phone_number):
+                raise ValidationError("Phone number must be exactly 10 digits.")
+        return phone_number
+
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -104,7 +119,21 @@ class AddUserForm(forms.ModelForm):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("This email is already in use.")
+        if email:
+            # Stricter regex for email validation (e.g., .com, .org, .edu.np)
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}(\.[a-zA-Z]{2,3})?$', email):
+                raise ValidationError("Enter a valid email address.")
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("This email is already in use.")
         return email
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            if not re.match(r'^\d{10}$', phone_number):
+                raise forms.ValidationError("Phone number must be exactly 10 digits.")
+        return phone_number
+
 
     def save(self, commit=True):
         user = super().save(commit=False)

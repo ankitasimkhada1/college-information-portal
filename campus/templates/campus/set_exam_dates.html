@@ -69,11 +69,25 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const today = new Date().toISOString().split('T')[0];
-        const startDateInput = document.querySelector('input[name="start_date"]');
-        const endDateInput = document.querySelector('input[name="end_date"]');
+        const startDateInput = document.getElementById('id_start_date');
+        const endDateInput = document.getElementById('id_end_date');
 
-        if (startDateInput) startDateInput.setAttribute('min', today);
-        if (endDateInput) endDateInput.setAttribute('min', today);
+        if (startDateInput) {
+            startDateInput.setAttribute('min', today);
+
+            startDateInput.addEventListener('change', function () {
+                if (endDateInput) {
+                    endDateInput.setAttribute('min', this.value);
+                    if (endDateInput.value && endDateInput.value < this.value) {
+                        endDateInput.value = this.value;
+                    }
+                }
+            });
+        }
+
+        if (endDateInput) {
+            endDateInput.setAttribute('min', today);
+        }
     });
 </script>
 {% endblock %}

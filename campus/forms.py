@@ -1,5 +1,7 @@
 from django import forms
 from .models import Assignment, Course, ExamRoutine, Event, FeeDue, CustomUser, Submission
+from django.utils import timezone
+from datetime import date
 
 class SubmissionForm(forms.ModelForm):
     class Meta:
@@ -13,6 +15,12 @@ class AssignmentForm(forms.ModelForm):
         widgets = {
             'due_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+        def clean_due_date(self):
+            due_date = self.cleaned_data.get('due_date')
+            if due_date and due_date < date.today():
+                raise forms.ValidationError("Due date cannot be in the past.")
+            return due_date
 
 class SemesterSelectionForm(forms.Form):
     semester = forms.IntegerField(min_value=1, max_value=8, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter Semester (1-8)'}))
@@ -46,7 +54,14 @@ class ExamRoutineForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if end_date < start_date:
+                raise forms.ValidationError("End date cannot be before start date.")
         return cleaned_data
+
 
 class NotificationForm(forms.Form):
     subject = forms.CharField(max_length=200)
@@ -81,3 +96,9 @@ class FeeDueForm(forms.ModelForm):
         widgets = {
             'due_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def clean_due_date(self):
+        due_date = self.cleaned_data.get('due_date')
+        if due_date and due_date < date.today():
+            raise forms.ValidationError("Due date cannot be in the past.")
+        return due_date

@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 
 User = get_user_model()
 
-# CustomLoginView removed as per user request
 
 
 def register_view(request):

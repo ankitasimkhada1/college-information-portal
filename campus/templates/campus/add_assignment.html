@@ -14,4 +14,13 @@
     {% endfor %}
     {% endif %}
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var today = new Date().toISOString().split('T')[0];
+        var dateInput = document.getElementById("id_due_date");
+        if (dateInput) {
+            dateInput.setAttribute('min', today);
+        }
+    });
+</script>
 {% endblock %}
